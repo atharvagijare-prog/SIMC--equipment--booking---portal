@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "*.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/student", "dest": "/student.html" },
+    { "src": "/hod", "dest": "/hod.html" },
+    { "src": "/manager", "dest": "/manager.html" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+}
+```
+
+4. Click **Commit changes**
+
+Vercel will automatically redeploy in about 30 seconds. Then visit:
+```
+simc-equipment-booking-portal.vercel.app
