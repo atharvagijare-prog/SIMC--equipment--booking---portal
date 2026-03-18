@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>HOD Approval Dashboard - SIMC Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#CF2E2E",
+                        "header-bg": "#0F172A",
+                        "background-light": "#F8FAFC",
+                        "background-dark": "#0F172A",
+                        "amber-accent": "#FBBF24"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "1rem",
+                        "xl": "1.25rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2.25rem",
+                        "full": "9999px",
+                        "dashboard": "3.5rem"
+                    },
+                    boxShadow: {
+                        "modal-deep": "0 45px 90px -20px rgba(0,0,0,0.4)",
+                        "bento": "0 10px 40px -10px rgba(15, 23, 42, 0.08)"
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+    <div class="layout-container flex h-full grow flex-col">
+        <!-- Header -->
+        <header class="flex items-center justify-between border-b border-solid border-white/10 bg-header-bg px-6 md:px-10 lg:px-40 py-5 sticky top-0 z-50">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center bg-primary rounded-xl p-2 shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-white text-2xl">videocam</span>
+                </div>
+                <div class="flex flex-col">
+                    <h2 class="text-white text-lg font-bold leading-none tracking-tight">SIMC</h2>
+                    <span class="text-primary text-[10px] font-black uppercase tracking-[0.2em] leading-none mt-1">HOD Portal</span>
+                </div>
+            </div>
+            <div class="flex flex-1 justify-end gap-8 items-center">
+                <a href="index.html" class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-2xl h-11 px-6 bg-primary text-white text-sm font-bold tracking-wide hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                    <span>Logout</span>
+                </a>
+            </div>
+        </header>
+
+        <main class="px-6 md:px-10 lg:px-40 py-12 max-w-[1440px] mx-auto w-full">
+            <div class="mb-10">
+                <h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-4xl font-bold leading-tight">Pending Approvals</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-2 text-lg">Review and manage student equipment requests.</p>
+            </div>
+
+            <!-- Requests Table -->
+            <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
+                        <tr>
+                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Student</th>
+                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Equipment</th>
+                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Purpose</th>
+                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Duration</th>
+                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hod-requests-body" class="divide-y divide-slate-100 dark:divide-white/5">
+                        <!-- Dynamic Rows Load Here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- Success Toast -->
+        <div id="success-toast" class="fixed bottom-10 right-10 z-[110] max-w-sm w-full hidden animate-in slide-in-from-right duration-500">
+            <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-modal-deep flex items-center gap-5 border border-white/10 ring-1 ring-primary/50">
+                <div class="flex-shrink-0 bg-primary/20 rounded-full p-2">
+                    <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm mb-0.5">Action Successful!</h4>
+                    <p id="toast-msg" class="text-xs text-slate-400 leading-relaxed">The request status has been updated.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw33N93V4yfKNP30K3r9iIZi3_URUrUsPpcjys69g4kronAV6smoAXs-a4sIjZSz4SBjw/exec';
+
+        window.onload = () => {
+            fetchPendingRequests();
+        };
+
+        async function fetchPendingRequests() {
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=hod`);
+                const requests = await res.json();
+                renderRequests(requests);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderRequests(data) {
+            const body = document.getElementById('hod-requests-body');
+            if (data.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="px-8 py-10 text-center text-slate-400">No pending requests found.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = data.map(req => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                    <td class="px-8 py-6">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-900 dark:text-slate-100">${req.StudentName}</span>
+                            <span class="text-[10px] text-slate-400 font-medium">${req.StudentEmail}</span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">PRN: ${req.StudentPRN}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-900 dark:text-slate-100">${req.EquipmentDescription}</span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">SIM: ${req.EquipmentSIMNo}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 text-slate-500 dark:text-slate-400 text-sm max-w-xs truncate">${req.Purpose}</td>
+                    <td class="px-8 py-6 text-slate-600 dark:text-slate-400 font-medium">${formatDate(req.FromDate)} - ${formatDate(req.ReturnDate)}</td>
+                    <td class="px-8 py-6 text-right">
+                        <div class="flex justify-end gap-3">
+                            <button onclick="handleAction('${req.RequestID}', 'Approved')" class="p-2.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-xl transition-all">
+                                <span class="material-symbols-outlined">check</span>
+                            </button>
+                            <button onclick="handleAction('${req.RequestID}', 'Rejected')" class="p-2.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function handleAction(requestId, status) {
+            const payload = {
+                action: 'updateHODStatus',
+                requestId: requestId,
+                status: status
+            };
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast("Success!", `Request ${requestId} has been ${status.toLowerCase()}.`);
+                    fetchPendingRequests();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function showToast(title, msg) {
+            const toast = document.getElementById('success-toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.querySelector('h4').innerText = title;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+    </script>
+</body>
+</html>
