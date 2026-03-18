@@ -276,18 +276,22 @@
             };
 
             try {
-                const res = await fetch(SCRIPT_URL, {
+                await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const result = await res.json();
-                if (result.success) {
-                    showToast("Success!", `Request ${requestId} marked as ${status.toLowerCase()}.`);
+                
+                showToast("Action Sent!", `Status update for ${requestId} sent.`);
+                setTimeout(() => {
                     fetchApprovedRequests();
                     fetchInventory();
-                }
-            } catch (e) { console.error(e); }
+                }, 1000);
+            } catch (e) { 
+                console.error(e); 
+                showToast("Error", "Failed to send action.");
+            }
         }
 
         async function addEquipment() {
@@ -304,18 +308,20 @@
             };
 
             try {
-                const res = await fetch(SCRIPT_URL, {
+                await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const result = await res.json();
-                if (result.success) {
-                    closeAddModal();
-                    showToast("Added!", `${name} added to inventory.`);
-                    fetchInventory();
-                }
-            } catch (e) { console.error(e); }
+                
+                closeAddModal();
+                showToast("Added!", `${name} addition request sent.`);
+                setTimeout(fetchInventory, 1000);
+            } catch (e) { 
+                console.error(e); 
+                showToast("Error", "Failed to add equipment.");
+            }
         }
 
         function openAddModal() { document.getElementById('add-modal').classList.remove('hidden'); }

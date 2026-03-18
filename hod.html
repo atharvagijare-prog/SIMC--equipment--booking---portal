@@ -168,17 +168,20 @@
             };
 
             try {
-                const res = await fetch(SCRIPT_URL, {
+                await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const result = await res.json();
-                if (result.success) {
-                    showToast("Success!", `Request ${requestId} has been ${status.toLowerCase()}.`);
-                    fetchPendingRequests();
-                }
-            } catch (e) { console.error(e); }
+                
+                // With no-cors, we can't read the response, so we assume success
+                showToast("Action Sent!", `Request ${requestId} status update sent.`);
+                setTimeout(fetchPendingRequests, 1000); // Wait a bit for the script to process
+            } catch (e) { 
+                console.error(e); 
+                showToast("Error", "Failed to send action.");
+            }
         }
 
         function showToast(title, msg) {
