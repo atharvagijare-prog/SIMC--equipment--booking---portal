@@ -1,19 +1,51 @@
-const VERCEL_URL = 'https://ais-dev-bn2ldncnfht3zuopoew4uo-207679608621.asia-east1.run.app';
+const VERCEL_URL = 'https://simc-equipment-booking-portal.vercel.app';
 
-function getSettings(ss) {
-  let sheet = ss.getSheetByName('Settings');
-  if (!sheet) {
-    sheet = ss.insertSheet('Settings');
-    sheet.appendRow(['Key', 'Value']);
-    sheet.appendRow(['HOD_EMAIL', 'atharvagijare111@gmail.com']);
-    sheet.appendRow(['MANAGER_EMAIL', 'atharva.gijare@simc.edu.in']);
-  }
+/**
+ * ACTUAL COLUMN STRUCTURE (Requests Sheet):
+ * A (0) = RequestID
+ * B (1) = StudentName
+ * C (2) = StudentPRN
+ * D (3) = StudentEmail
+ * E (4) = EquipmentSIMNo
+ * F (5) = EquipmentDescription
+ * G (6) = Quantity
+ * H (7) = Purpose
+ * I (8) = FromDate
+ * J (9) = ReturnDate
+ * K (10) = SubmittedOn
+ * L (11) = HODStatus
+ * M (12) = ManagerStatus
+ */
+
+
+/**
+ * Helper to read Requests sheet with merged cell fill-down logic
+ */
+function getRequestsData(ss) {
+  const sheet = ss.getSheetByName('Requests');
+  if (!sheet) return { headers: [], rows: [] };
   const data = sheet.getDataRange().getValues();
-  const settings = {};
+  if (data.length <= 1) return { headers: data[0] || [], rows: [] };
+  
+  const headers = data[0];
+  const processedRows = [];
+  let lastRowData = null;
+  
   for (let i = 1; i < data.length; i++) {
-    settings[data[i][0]] = data[i][1];
+    let row = [...data[i]];
+    if (!row[0]) { // If RequestID is empty (merged cell)
+      if (lastRowData) {
+        // Copy values for A, B, C, D, H, I, J, L, M
+        [0, 1, 2, 3, 7, 8, 9, 11, 12].forEach(idx => {
+          row[idx] = lastRowData[idx];
+        });
+      }
+    } else {
+      lastRowData = [...row];
+    }
+    processedRows.push(row);
   }
-  return settings;
+  return { headers, rows: processedRows };
 }
 
 function doGet(e) {
@@ -27,6 +59,7 @@ function doGet(e) {
   if (action === 'validateStudent') {
     const prn = e.parameter.prn;
     const sheet = ss.getSheetByName('Students Full DataBase');
+    if (!sheet) return jsonResponse({ success: false, error: 'Student database not found' });
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       if (data[i][0].toString() === prn) {
@@ -44,18 +77,17 @@ function doGet(e) {
   if (action === 'getRequests') {
     const role = e.parameter.role;
     const prn = e.parameter.prn;
-    const sheet = ss.getSheetByName('Requests');
-    if (!sheet) return jsonResponse([]);
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
+    const reqInfo = getRequestsData(ss);
+    const headers = reqInfo.headers;
+    const rows = reqInfo.rows;
     let requests = [];
     
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
       const req = {};
       headers.forEach((h, idx) => req[h] = row[idx]);
       
-      if (role === 'student' && req.StudentPRN.toString() === prn) {
+      if (role === 'student' && req.StudentPRN && req.StudentPRN.toString() === prn) {
         requests.push(req);
       } else if (role === 'hod' && req.HODStatus === 'Pending') {
         requests.push(req);
@@ -70,14 +102,14 @@ function doGet(e) {
   
   if (action === 'getRequestById') {
     const id = e.parameter.id;
-    const sheet = ss.getSheetByName('Requests');
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
+    const reqInfo = getRequestsData(ss);
+    const headers = reqInfo.headers;
+    const rows = reqInfo.rows;
     let results = [];
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === id) {
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i][0] === id) {
         const req = {};
-        headers.forEach((h, idx) => req[h] = data[i][idx]);
+        headers.forEach((h, idx) => req[h] = rows[i][idx]);
         results.push(req);
       }
     }
@@ -85,17 +117,19 @@ function doGet(e) {
   }
 
   if (action === 'getAdminData') {
-    const settings = getSettings(ss);
+    const settings = { HOD_EMAIL: 'atharvagijare111@gmail.com', MANAGER_EMAIL: 'atharva.gijare@simc.edu.in' };
     const studentSheet = ss.getSheetByName('Students Full DataBase');
-    const studentData = studentSheet.getDataRange().getValues();
     const students = [];
-    for (let i = 1; i < studentData.length; i++) {
-      students.push({
-        prn: studentData[i][0],
-        name: studentData[i][1],
-        specialization: studentData[i][2],
-        semester: studentData[i][3]
-      });
+    if (studentSheet) {
+      const studentData = studentSheet.getDataRange().getValues();
+      for (let i = 1; i < studentData.length; i++) {
+        students.push({
+          prn: studentData[i][0],
+          name: studentData[i][1],
+          specialization: studentData[i][2],
+          semester: studentData[i][3]
+        });
+      }
     }
 
     return jsonResponse({
@@ -130,23 +164,16 @@ function doPost(e) {
     return addEquipment(ss, data);
   }
 
-  if (action === 'updateSettings') {
-    const sheet = ss.getSheetByName('Settings');
-    const rows = sheet.getDataRange().getValues();
-    for (let i = 1; i < rows.length; i++) {
-      if (rows[i][0] === 'HOD_EMAIL') sheet.getRange(i + 1, 2).setValue(data.hodEmail);
-      if (rows[i][0] === 'MANAGER_EMAIL') sheet.getRange(i + 1, 2).setValue(data.managerEmail);
-    }
-    return jsonResponse({ success: true });
-  }
 
   if (action === 'deleteRequest') {
     const sheet = ss.getSheetByName('Requests');
-    const dataRange = sheet.getDataRange();
-    const values = dataRange.getValues();
-    for (let i = values.length - 1; i >= 1; i--) {
-      if (values[i][0] === data.requestId) {
-        sheet.deleteRow(i + 1);
+    if (sheet) {
+      const dataRange = sheet.getDataRange();
+      const values = dataRange.getValues();
+      for (let i = values.length - 1; i >= 1; i--) {
+        if (values[i][0] === data.requestId) {
+          sheet.deleteRow(i + 1);
+        }
       }
     }
     return jsonResponse({ success: true });
@@ -155,42 +182,43 @@ function doPost(e) {
 
 function getInventoryData(ss) {
   const eqSheet = ss.getSheetByName('Eq_Data_Base');
-  const reqSheet = ss.getSheetByName('Requests');
-  
+  if (!eqSheet) return [];
   const eqData = eqSheet.getDataRange().getValues();
-  const reqData = reqSheet ? reqSheet.getDataRange().getValues() : [];
   
-  // Count issued items per type
+  // Count issued items by EquipmentDescription (Column F in Requests)
   const issuedCounts = {};
-  if (reqData.length > 1) {
-    const headers = reqData[0];
-    const typeIdx = headers.indexOf('EquipmentType');
-    const statusIdx = headers.indexOf('ManagerStatus');
-    for (let i = 1; i < reqData.length; i++) {
-      if (reqData[i][statusIdx] === 'Issued') {
-        const type = reqData[i][typeIdx];
-        issuedCounts[type] = (issuedCounts[type] || 0) + 1;
+  const reqInfo = getRequestsData(ss);
+  if (reqInfo.rows) {
+    const rows = reqInfo.rows;
+    const descIdx = 5; // Column F
+    const qtyIdx = 6;  // Column G
+    const statusIdx = 12; // Column M
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i][statusIdx] === 'Issued') {
+        const desc = rows[i][descIdx];
+        const qty = parseInt(rows[i][qtyIdx]) || 1;
+        issuedCounts[desc] = (issuedCounts[desc] || 0) + qty;
       }
     }
   }
   
-  // Group by type
+  // Group by description
   const inventory = {};
   for (let i = 1; i < eqData.length; i++) {
     const type = eqData[i][2];
     const desc = eqData[i][3];
     const totalQty = parseInt(eqData[i][4]) || 0;
     
-    if (!inventory[type]) {
-      inventory[type] = {
+    if (!inventory[desc]) {
+      inventory[desc] = {
         Type: type,
-        Description: desc, // Using first description found for the type
+        Description: desc,
         TotalQty: 0,
-        IssuedQty: issuedCounts[type] || 0,
+        IssuedQty: issuedCounts[desc] || 0,
         AvailableQty: 0
       };
     }
-    inventory[type].TotalQty += totalQty;
+    inventory[desc].TotalQty += totalQty;
   }
   
   return Object.values(inventory).map(item => {
@@ -204,9 +232,9 @@ function submitRequest(ss, data) {
   if (!sheet) {
     sheet = ss.insertSheet('Requests');
     sheet.appendRow([
-      'RequestID', 'StudentName', 'StudentPRN', 'StudentEmail', 'RequestDate', 
-      'Purpose', 'FromDate', 'ReturnDate', 'EquipmentType', 'EquipmentDescription', 
-      'SIMNo', 'HODStatus', 'ManagerStatus'
+      'RequestID', 'StudentName', 'StudentPRN', 'StudentEmail', 'EquipmentSIMNo', 
+      'EquipmentDescription', 'Quantity', 'Purpose', 'FromDate', 'ReturnDate', 
+      'SubmittedOn', 'HODStatus', 'ManagerStatus'
     ]);
   }
   
@@ -217,20 +245,29 @@ function submitRequest(ss, data) {
   
   data.items.forEach(item => {
     sheet.appendRow([
-      requestId, data.studentName, data.studentPRN, data.studentEmail, requestDate,
-      data.purpose, data.fromDate, data.returnDate, item.type, item.description,
-      '', 'Pending', 'Pending'
+      requestId, data.studentName, data.studentPRN, data.studentEmail, 
+      '', // EquipmentSIMNo (E)
+      item.description, // EquipmentDescription (F)
+      item.qty || 1, // Quantity (G)
+      data.purpose, // Purpose (H)
+      data.fromDate, // FromDate (I)
+      data.returnDate, // ReturnDate (J)
+      requestDate, // SubmittedOn (K)
+      'Pending', // HODStatus (L)
+      'Pending' // ManagerStatus (M)
     ]);
   });
   
-  // Merge common cells
-  const mergeCols = [1, 2, 3, 4, 5, 6, 7, 8, 12, 13]; // A, B, C, D, E, F, G, H, L, M
-  mergeCols.forEach(col => {
-    sheet.getRange(startRow, col, numItems, 1).merge();
-  });
+  // Merge common cells: A, B, C, D, H, I, J, L, M
+  // Column indices: A=1, B=2, C=3, D=4, H=8, I=9, J=10, L=12, M=13
+  const mergeCols = [1, 2, 3, 4, 8, 9, 10, 12, 13];
+  if (numItems > 1) {
+    mergeCols.forEach(col => {
+      sheet.getRange(startRow, col, numItems, 1).merge();
+    });
+  }
   
   // Send Email to HOD
-  const settings = getSettings(ss);
   const approveUrl = `${VERCEL_URL}/hod.html?id=${requestId}&action=approve`;
   const rejectUrl = `${VERCEL_URL}/hod.html?id=${requestId}&action=reject`;
   
@@ -241,7 +278,7 @@ function submitRequest(ss, data) {
     <p><b>Duration:</b> ${data.fromDate} to ${data.returnDate}</p>
     <p><b>Equipment:</b></p>
     <ul>
-      ${data.items.map(i => `<li>${i.description} (${i.type})</li>`).join('')}
+      ${data.items.map(i => `<li>${i.description} (Qty: ${i.qty || 1})</li>`).join('')}
     </ul>
     <p>
       <a href="${approveUrl}" style="background: green; color: white; padding: 10px; text-decoration: none;">Approve</a>
@@ -251,7 +288,7 @@ function submitRequest(ss, data) {
   `;
   
   MailApp.sendEmail({
-    to: settings.HOD_EMAIL,
+    to: 'atharvagijare111@gmail.com',
     subject: `New Equipment Request - ${data.studentName}`,
     htmlBody: emailBody
   });
@@ -262,40 +299,45 @@ function submitRequest(ss, data) {
 function updateHODStatus(ss, data) {
   const sheet = ss.getSheetByName('Requests');
   const rows = sheet.getDataRange().getValues();
-  const settings = getSettings(ss);
   let studentEmail = '';
   let studentName = '';
   let equipmentList = [];
   
+  let lastRequestID = '';
   for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0] === data.requestId) {
-      sheet.getRange(i + 1, 12).setValue(data.status);
-      studentEmail = rows[i][3];
-      studentName = rows[i][1];
-      equipmentList.push(rows[i][9]);
+    const currentID = rows[i][0] || lastRequestID;
+    if (currentID === data.requestId) {
+      sheet.getRange(i + 1, 12).setValue(data.status); // Column L
+      if (rows[i][0]) { // Only first row of group has student info
+        studentEmail = rows[i][3];
+        studentName = rows[i][1];
+      }
+      equipmentList.push(rows[i][5]); // EquipmentDescription (F)
     }
+    if (rows[i][0]) lastRequestID = rows[i][0];
   }
   
   if (data.status === 'Approved') {
-    // Email Student
+    if (studentEmail) {
+      MailApp.sendEmail({
+        to: studentEmail,
+        subject: 'Equipment Request Approved',
+        body: `Your request ${data.requestId} has been approved by the HOD. Please collect the equipment from the manager.`
+      });
+    }
     MailApp.sendEmail({
-      to: studentEmail,
-      subject: 'Equipment Request Approved',
-      body: `Your request ${data.requestId} has been approved by the HOD. Please collect the equipment from the manager.`
-    });
-    // Email Manager
-    MailApp.sendEmail({
-      to: settings.MANAGER_EMAIL,
+      to: 'atharva.gijare@simc.edu.in',
       subject: `Issue Equipment - ${studentName}`,
       body: `HOD has approved the request ${data.requestId} for ${studentName}. Please issue the following equipment: \n\n ${equipmentList.join('\n')}`
     });
   } else {
-    // Email Student Rejection
-    MailApp.sendEmail({
-      to: studentEmail,
-      subject: 'Equipment Request Rejected',
-      body: `Your request ${data.requestId} has been rejected by the HOD. \nReason: ${data.reason || 'Not specified'}`
-    });
+    if (studentEmail) {
+      MailApp.sendEmail({
+        to: studentEmail,
+        subject: 'Equipment Request Rejected',
+        body: `Your request ${data.requestId} has been rejected by the HOD. \nReason: ${data.reason || 'Not specified'}`
+      });
+    }
   }
   
   return jsonResponse({ success: true });
@@ -306,12 +348,14 @@ function updateSIMNumbers(ss, data) {
   const rows = sheet.getDataRange().getValues();
   
   data.updates.forEach(update => {
+    let lastRequestID = '';
     for (let i = 1; i < rows.length; i++) {
-      // Find the specific row for this RequestID and EquipmentDescription
-      if (rows[i][0] === data.requestId && rows[i][9] === update.description) {
-        sheet.getRange(i + 1, 11).setValue(update.simNo);
+      const currentID = rows[i][0] || lastRequestID;
+      if (currentID === data.requestId && rows[i][5] === update.description) {
+        sheet.getRange(i + 1, 5).setValue(update.simNo); // Column E
         break;
       }
+      if (rows[i][0]) lastRequestID = rows[i][0];
     }
   });
   
@@ -322,35 +366,42 @@ function updateManagerStatus(ss, data) {
   const reqSheet = ss.getSheetByName('Requests');
   const reqRows = reqSheet.getDataRange().getValues();
   const eqSheet = ss.getSheetByName('Eq_Data_Base');
+  if (!eqSheet) return jsonResponse({ success: false, error: 'Inventory sheet not found' });
   const eqData = eqSheet.getDataRange().getValues();
   
   let studentEmail = '';
-  let equipmentTypesToUpdate = [];
+  let equipmentDescsToUpdate = [];
   
+  let lastRequestID = '';
   for (let i = 1; i < reqRows.length; i++) {
-    if (reqRows[i][0] === data.requestId) {
-      reqSheet.getRange(i + 1, 13).setValue(data.status);
-      studentEmail = reqRows[i][3];
-      equipmentTypesToUpdate.push(reqRows[i][8]); // EquipmentType is Column I (index 8)
+    const currentID = reqRows[i][0] || lastRequestID;
+    if (currentID === data.requestId) {
+      reqSheet.getRange(i + 1, 13).setValue(data.status); // Column M
+      if (reqRows[i][0]) studentEmail = reqRows[i][3];
+      equipmentDescsToUpdate.push({
+        desc: reqRows[i][5], // Column F
+        qty: parseInt(reqRows[i][6]) || 1 // Column G
+      });
     }
+    if (reqRows[i][0]) lastRequestID = reqRows[i][0];
   }
   
-  // Update Inventory Qty
+  // Update Inventory Qty in Eq_Data_Base
   const adjustment = (data.status === 'Issued') ? -1 : (data.status === 'Returned' ? 1 : 0);
   
   if (adjustment !== 0) {
-    equipmentTypesToUpdate.forEach(type => {
+    equipmentDescsToUpdate.forEach(item => {
       for (let j = 1; j < eqData.length; j++) {
-        if (eqData[j][2] === type) { // Column C is Type (index 2)
+        if (eqData[j][3] === item.desc) { // Column D is Description (index 3)
           const currentQty = parseInt(eqData[j][4]) || 0; // Column E is Qty (index 4)
-          eqSheet.getRange(j + 1, 5).setValue(currentQty + adjustment);
-          break; // Update first match found for that type
+          eqSheet.getRange(j + 1, 5).setValue(currentQty + (adjustment * item.qty));
+          break;
         }
       }
     });
   }
   
-  if (data.status === 'Issued') {
+  if (data.status === 'Issued' && studentEmail) {
     MailApp.sendEmail({
       to: studentEmail,
       subject: 'Equipment Issued',
@@ -363,6 +414,7 @@ function updateManagerStatus(ss, data) {
 
 function addEquipment(ss, data) {
   const sheet = ss.getSheetByName('Eq_Data_Base');
+  if (!sheet) return jsonResponse({ success: false, error: 'Inventory sheet not found' });
   const lastRow = sheet.getLastRow();
   sheet.appendRow([
     lastRow,

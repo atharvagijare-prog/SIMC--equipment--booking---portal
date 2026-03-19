@@ -286,9 +286,12 @@
             body.innerHTML = groups.map(items => {
                 const req = items[0];
                 const equipmentHtml = items.map(i => `
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
-                        <span class="text-xs font-medium text-slate-600 dark:text-slate-300">${i.EquipmentDescription}</span>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${i.EquipmentDescription}</span>
+                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">${i.EquipmentType}</span>
+                        </div>
                     </div>
                 `).join('');
 
@@ -404,8 +407,18 @@
 
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
-            const d = new Date(dateStr);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            let d;
+            if (typeof dateStr === 'number') {
+                d = new Date((dateStr - 25569) * 86400 * 1000);
+            } else {
+                d = new Date(dateStr);
+            }
+            if (isNaN(d.getTime())) return 'N/A';
+            return d.toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
         }
     </script>
 </body>
