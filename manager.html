@@ -579,8 +579,19 @@
 
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
-            const d = new Date(dateStr);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            let d;
+            if (typeof dateStr === 'number') {
+                // Google Sheets date serial
+                d = new Date((dateStr - 25569) * 86400 * 1000);
+            } else {
+                d = new Date(dateStr);
+            }
+            if (isNaN(d.getTime())) return 'N/A';
+            return d.toLocaleDateString('en-IN', { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric' 
+            });
         }
     </script>
 </body>
