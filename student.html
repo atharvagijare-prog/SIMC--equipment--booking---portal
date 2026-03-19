@@ -417,7 +417,10 @@
                     purpose: purpose,
                     fromDate: from,
                     returnDate: to,
-                    items: cart
+                    items: cart.map(item => ({
+                        description: item.description,
+                        qty: 1
+                    }))
                 };
 
                 await fetch(SCRIPT_URL, {

@@ -242,6 +242,7 @@ function submitRequest(ss, data) {
   const requestDate = new Date();
   const startRow = sheet.getLastRow() + 1;
   const numItems = data.items.length;
+  console.log('data.items:', JSON.stringify(data.items));
   
   data.items.forEach(item => {
     sheet.appendRow([
