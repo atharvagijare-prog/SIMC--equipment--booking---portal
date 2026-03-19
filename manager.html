@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Manager Dashboard - SIMC Portal</title>
+    <title>Manager Dashboard | SIMC Equipment Portal</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
@@ -14,261 +14,497 @@
                 extend: {
                     colors: {
                         "primary": "#CF2E2E",
-                        "header-bg": "#0F172A",
-                        "background-light": "#F8FAFC",
-                        "background-dark": "#0F172A",
-                        "amber-accent": "#FBBF24"
+                        "brand-dark": "#0F172A",
+                        "surface": "#F8FAFC",
                     },
                     fontFamily: {
-                        "display": ["Inter", "sans-serif"]
+                        "sans": ["Inter", "sans-serif"],
                     },
                     borderRadius: {
                         "DEFAULT": "1rem",
-                        "lg": "1rem",
                         "xl": "1.25rem",
                         "2xl": "1.5rem",
                         "3xl": "2.25rem",
-                        "full": "9999px",
-                        "dashboard": "3.5rem"
+                        "card": "3.5rem",
+                        "full": "9999px"
                     },
                     boxShadow: {
-                        "modal-deep": "0 45px 90px -20px rgba(0,0,0,0.4)",
-                        "bento": "0 10px 40px -10px rgba(15, 23, 42, 0.08)"
+                        "bento": "0 10px 40px -10px rgba(15, 23, 42, 0.08)",
+                        "modal": "0 45px 100px -20px rgba(0,0,0,0.4)"
                     }
                 },
             },
         }
     </script>
     <style>
+        body { font-family: 'Inter', sans-serif; }
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             display: inline-block;
             vertical-align: middle;
             line-height: 1;
         }
+        .pulse-red {
+            animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .7; transform: scale(1.05); }
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
-    <div class="layout-container flex h-full grow flex-col">
-        <!-- Header -->
-        <header class="flex items-center justify-between border-b border-solid border-white/10 bg-header-bg px-6 md:px-10 lg:px-40 py-5 sticky top-0 z-50">
-            <div class="flex items-center gap-3">
-                <div class="flex items-center justify-center bg-primary rounded-xl p-2 shadow-lg shadow-primary/20">
+<body class="bg-surface min-h-screen">
+    <!-- Header -->
+    <header class="bg-brand-dark px-6 md:px-12 py-5 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-[1600px] mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
                     <span class="material-symbols-outlined text-white text-2xl">videocam</span>
                 </div>
-                <div class="flex flex-col">
-                    <h2 class="text-white text-lg font-bold leading-none tracking-tight">SIMC</h2>
-                    <span class="text-primary text-[10px] font-black uppercase tracking-[0.2em] leading-none mt-1">Manager Portal</span>
+                <div>
+                    <h1 class="text-white font-black text-xl tracking-tight leading-none">SIMC</h1>
+                    <p class="text-primary text-[9px] font-black uppercase tracking-[0.2em] mt-1">Equipment Manager</p>
                 </div>
             </div>
-            <div class="flex flex-1 justify-end gap-8 items-center">
-                <nav class="hidden md:flex items-center gap-9">
-                    <a class="text-slate-300 hover:text-primary transition-colors text-sm font-semibold tracking-wide" href="#inventory">Inventory</a>
-                    <a class="text-slate-300 hover:text-primary transition-colors text-sm font-semibold tracking-wide" href="#approvals">Approvals</a>
+            <div class="flex items-center gap-8">
+                <nav class="hidden lg:flex items-center gap-8">
+                    <a href="#pending" class="text-slate-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">Pending Issuance</a>
+                    <a href="#issued" class="text-slate-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">Currently Issued</a>
+                    <a href="#inventory" class="text-slate-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">Inventory</a>
                 </nav>
-                <a href="index.html" class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-2xl h-11 px-6 bg-primary text-white text-sm font-bold tracking-wide hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                    <span>Logout</span>
-                </a>
+                <div class="h-8 w-px bg-white/10 hidden lg:block"></div>
+                <a href="index.html" class="bg-white/5 hover:bg-white/10 text-white px-6 py-3 rounded-2xl text-xs font-bold transition-all border border-white/10">Logout</a>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="px-6 md:px-10 lg:px-40 py-12 max-w-[1440px] mx-auto w-full">
-            <div class="mb-10">
-                <h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-4xl font-bold leading-tight">Manager Dashboard</h1>
-                <p class="text-slate-500 dark:text-slate-400 mt-2 text-lg">Manage inventory and process approved requests.</p>
-            </div>
-
-            <!-- Approved Requests Section -->
-            <div class="mb-16" id="approvals">
-                <h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight mb-8">Approved Requests</h2>
-                <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
-                            <tr>
-                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Student</th>
-                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Equipment</th>
-                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Dates</th>
-                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="manager-requests-body" class="divide-y divide-slate-100 dark:divide-white/5">
-                            <!-- Dynamic Rows Load Here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Inventory Management Section -->
-            <div id="inventory">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight">Inventory Management</h2>
-                    <button onclick="openAddModal()" class="bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined">add</span>
-                        <span>Add Equipment</span>
-                    </button>
-                </div>
-                <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
-                            <tr>
-                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Equipment Name</th>
-                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Category</th>
-                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Available</th>
-                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-body" class="divide-y divide-slate-100 dark:divide-white/5">
-                            <!-- Dynamic Rows Load Here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-
-        <!-- Add Equipment Modal -->
-        <div id="add-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden">
-            <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] shadow-modal-deep overflow-hidden border border-slate-100 dark:border-slate-700">
-                <div class="p-8 border-b border-slate-50 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-700/30">
-                    <h3 class="text-xl font-black text-slate-900 dark:text-slate-100">Add New Equipment</h3>
-                    <button onclick="closeAddModal()" class="text-slate-400 hover:text-primary transition-colors">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
-                </div>
-                <div class="p-8 space-y-6">
-                    <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Equipment Name</label>
-                        <input id="new-name" type="text" class="w-full rounded-2xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4">
+    <main class="max-w-[1600px] mx-auto p-6 md:p-12">
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-bento border border-slate-100 group hover:scale-[1.02] transition-all duration-500">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:bg-brand-dark transition-colors duration-500">
+                        <span class="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors duration-500">inventory_2</span>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Category</label>
-                        <input id="new-category" type="text" class="w-full rounded-2xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Equipment</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <h3 id="stat-total-eq" class="text-4xl font-black text-brand-dark tracking-tighter">0</h3>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Units</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-bento border border-slate-100 group hover:scale-[1.02] transition-all duration-500">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 transition-colors duration-500">
+                        <span class="material-symbols-outlined text-emerald-500 group-hover:text-white transition-colors duration-500">outbound</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Total Units</label>
-                            <input id="new-total" type="number" class="w-full rounded-2xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Image URL</label>
-                            <input id="new-image" type="text" class="w-full rounded-2xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4" placeholder="https://...">
-                        </div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Currently Issued</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <h3 id="stat-issued" class="text-4xl font-black text-emerald-500 tracking-tighter">0</h3>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Active</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-bento border border-slate-100 group hover:scale-[1.02] transition-all duration-500">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center group-hover:bg-amber-500 transition-colors duration-500">
+                        <span class="material-symbols-outlined text-amber-500 group-hover:text-white transition-colors duration-500">pending_actions</span>
                     </div>
-                    <button onclick="addEquipment()" class="w-full bg-primary text-white font-black uppercase tracking-widest py-5 rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
-                        Add to Inventory
-                    </button>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Pending Issuance</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <h3 id="stat-pending" class="text-4xl font-black text-amber-500 tracking-tighter">0</h3>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Requests</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] shadow-bento border border-slate-100 group hover:scale-[1.02] transition-all duration-500">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-colors duration-500">
+                        <span class="material-symbols-outlined text-primary group-hover:text-white transition-colors duration-500">warning</span>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Overdue Returns</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <h3 id="stat-overdue" class="text-4xl font-black text-primary tracking-tighter">0</h3>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Alerts</span>
                 </div>
             </div>
         </div>
 
-        <!-- Success Toast -->
-        <div id="success-toast" class="fixed bottom-10 right-10 z-[110] max-w-sm w-full hidden animate-in slide-in-from-right duration-500">
-            <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-modal-deep flex items-center gap-5 border border-white/10 ring-1 ring-primary/50">
-                <div class="flex-shrink-0 bg-primary/20 rounded-full p-2">
-                    <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
-                </div>
+        <div class="flex flex-col lg:flex-row gap-12">
+            <!-- Main Content Area -->
+            <div class="flex-grow space-y-16">
+                <!-- Pending Issuance Table -->
+                <section id="pending">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-2xl font-black text-brand-dark tracking-tight">Pending Issuance</h2>
+                            <p class="text-slate-500 text-sm mt-1">Requests approved by HOD awaiting equipment handover.</p>
+                        </div>
+                        <div class="flex items-center gap-3 bg-amber-50 text-amber-700 px-4 py-2 rounded-xl border border-amber-100">
+                            <span class="material-symbols-outlined text-sm">info</span>
+                            <span class="text-[10px] font-bold uppercase tracking-widest">SIM Numbers Required</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-[2.5rem] shadow-bento border border-slate-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Request Details</th>
+                                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Equipment & SIMs</th>
+                                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Duration</th>
+                                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-body" class="divide-y divide-slate-50">
+                                    <!-- Dynamic Content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Currently Issued Table -->
+                <section id="issued">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-2xl font-black text-brand-dark tracking-tight">Currently Issued</h2>
+                            <p class="text-slate-500 text-sm mt-1">Equipment currently in possession of students.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-[2.5rem] shadow-bento border border-slate-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Student Info</th>
+                                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Equipment</th>
+                                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Return Date</th>
+                                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="issued-body" class="divide-y divide-slate-50">
+                                    <!-- Dynamic Content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="w-full lg:w-96 space-y-8">
+                <!-- Inventory Sidebar -->
+                <section id="inventory" class="bg-brand-dark rounded-[2.5rem] p-8 text-white shadow-2xl sticky top-32">
+                    <div class="flex items-center justify-between mb-10">
+                        <h2 class="text-xl font-black tracking-tight">Inventory Status</h2>
+                        <button onclick="openAddModal()" class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-white">add</span>
+                        </button>
+                    </div>
+                    
+                    <div id="inventory-stats" class="space-y-8">
+                        <!-- Dynamic Utilization Bars -->
+                    </div>
+
+                    <div class="mt-12 pt-8 border-t border-white/10">
+                        <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6">
+                            <span>Quick Actions</span>
+                        </div>
+                        <button onclick="location.reload()" class="w-full flex items-center justify-between bg-white/5 hover:bg-white/10 p-4 rounded-2xl transition-all group">
+                            <span class="text-sm font-bold">Refresh Data</span>
+                            <span class="material-symbols-outlined text-slate-500 group-hover:rotate-180 transition-transform duration-700">refresh</span>
+                        </button>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Add Equipment Modal -->
+    <div id="add-modal" class="fixed inset-0 bg-brand-dark/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6 hidden">
+        <div class="bg-white w-full max-w-xl rounded-card shadow-modal overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div class="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div>
-                    <h4 class="font-bold text-sm mb-0.5">Action Successful!</h4>
-                    <p id="toast-msg" class="text-xs text-slate-400 leading-relaxed">The inventory has been updated.</p>
+                    <h3 class="text-2xl font-black text-brand-dark tracking-tight">Add New Equipment</h3>
+                    <p class="text-slate-500 text-sm mt-1">Register a new unit into the system.</p>
                 </div>
+                <button onclick="closeAddModal()" class="w-12 h-12 flex items-center justify-center rounded-2xl hover:bg-red-50 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-10 space-y-8">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Equipment Type</label>
+                        <input id="new-type" type="text" class="w-full px-6 py-4 rounded-2xl border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="e.g. Camera"/>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Initial SIM No</label>
+                        <input id="new-sim" type="text" class="w-full px-6 py-4 rounded-2xl border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="e.g. SIM-001"/>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Description</label>
+                    <input id="new-desc" type="text" class="w-full px-6 py-4 rounded-2xl border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="e.g. Sony A7 III Body"/>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Quantity</label>
+                        <input id="new-qty" type="number" class="w-full px-6 py-4 rounded-2xl border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" value="1"/>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Serial Number</label>
+                        <input id="new-serial" type="text" class="w-full px-6 py-4 rounded-2xl border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="SN-XXXXX"/>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Storage Location</label>
+                    <input id="new-location" type="text" class="w-full px-6 py-4 rounded-2xl border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="e.g. Rack A, Shelf 2"/>
+                </div>
+                <button onclick="addEquipment()" class="w-full py-6 bg-primary text-white font-black uppercase tracking-widest rounded-3xl hover:bg-[#b82929] transition-all shadow-xl shadow-primary/25 flex items-center justify-center gap-4">
+                    <span class="material-symbols-outlined">save</span>
+                    <span>Register Equipment</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="fixed bottom-10 right-10 z-[110] max-w-sm w-full hidden animate-in slide-in-from-right duration-500">
+        <div class="bg-brand-dark text-white p-6 rounded-3xl shadow-2xl flex items-center gap-5 border border-white/10 ring-1 ring-primary/50">
+            <div class="flex-shrink-0 bg-primary/20 rounded-full p-3">
+                <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
+            </div>
+            <div>
+                <h4 id="toast-title" class="font-bold text-sm mb-0.5">Action Successful!</h4>
+                <p id="toast-msg" class="text-xs text-slate-400 leading-relaxed">The request has been processed.</p>
             </div>
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw33N93V4yfKNP30K3r9iIZi3_URUrUsPpcjys69g4kronAV6smoAXs-a4sIjZSz4SBjw/exec';
+        
+        let allRequests = [];
+        let inventoryData = [];
 
         window.onload = () => {
-            fetchApprovedRequests();
-            fetchInventory();
+            fetchData();
         };
 
-        async function fetchApprovedRequests() {
+        async function fetchData() {
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=manager`);
-                const requests = await res.json();
-                renderRequests(requests);
-            } catch (e) { console.error(e); }
+                const [reqRes, invRes] = await Promise.all([
+                    fetch(`${SCRIPT_URL}?action=getRequests&role=manager`),
+                    fetch(`${SCRIPT_URL}?action=getInventory`)
+                ]);
+                
+                allRequests = await reqRes.json();
+                inventoryData = await invRes.json();
+                
+                updateStats();
+                renderPendingTable();
+                renderIssuedTable();
+                renderInventorySidebar();
+            } catch (e) {
+                console.error('Error fetching data:', e);
+            }
         }
 
-        async function fetchInventory() {
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=getInventory`);
-                const data = await res.json();
-                renderInventory(data);
-            } catch (e) { console.error(e); }
+        function updateStats() {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            // Total Equipment
+            const totalEq = inventoryData.reduce((sum, item) => sum + (parseInt(item.TotalQty) || 0), 0);
+            
+            // Currently Issued
+            const issued = allRequests.filter(r => r.ManagerStatus === 'Issued').length;
+            
+            // Pending Issuance (HOD Approved AND Manager Pending)
+            // Group by RequestID to count requests, not items
+            const pendingGroups = allRequests.reduce((acc, r) => {
+                if (r.HODStatus === 'Approved' && r.ManagerStatus === 'Pending') {
+                    acc.add(r.RequestID);
+                }
+                return acc;
+            }, new Set());
+            const pending = pendingGroups.size;
+
+            // Overdue Returns
+            const overdue = allRequests.filter(r => {
+                const retDate = new Date(r.ReturnDate);
+                return r.ManagerStatus === 'Issued' && retDate < today;
+            }).length;
+
+            document.getElementById('stat-total-eq').innerText = totalEq;
+            document.getElementById('stat-issued').innerText = issued;
+            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-overdue').innerText = overdue;
         }
 
-        function renderRequests(data) {
-            const body = document.getElementById('manager-requests-body');
-            if (data.length === 0) {
-                body.innerHTML = `<tr><td colspan="4" class="px-8 py-10 text-center text-slate-400">No approved requests to process.</td></tr>`;
+        function renderPendingTable() {
+            const body = document.getElementById('pending-body');
+            const pending = allRequests.filter(r => r.HODStatus === 'Approved' && r.ManagerStatus === 'Pending');
+            
+            if (pending.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" class="px-8 py-12 text-center text-slate-400 font-medium italic">No pending issuances found.</td></tr>';
                 return;
             }
 
-            body.innerHTML = data.map(req => {
-                let actionBtn = '';
-                if (req.ManagerStatus === 'Pending') {
-                    actionBtn = `
-                        <button onclick="updateManagerStatus('${req.RequestID}', 'Issued')" class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-primary/90 transition-all">
-                            Issue Items
-                        </button>
-                    `;
-                } else if (req.ManagerStatus === 'Issued') {
-                    actionBtn = `
-                        <button onclick="updateManagerStatus('${req.RequestID}', 'Returned')" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 transition-all">
-                            Mark Returned
-                        </button>
-                    `;
-                }
+            // Group by RequestID
+            const grouped = pending.reduce((acc, r) => {
+                if (!acc[r.RequestID]) acc[r.RequestID] = [];
+                acc[r.RequestID].push(r);
+                return acc;
+            }, {});
+
+            body.innerHTML = Object.keys(grouped).map(reqId => {
+                const items = grouped[reqId];
+                const first = items[0];
+                
+                // Check if ALL items have SIMNo
+                const allSimsFilled = items.every(i => i.SIMNo && i.SIMNo.trim() !== '');
+
+                const equipmentHtml = items.map(i => `
+                    <div class="flex items-center justify-between gap-4 mb-2">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-brand-dark">${i.EquipmentDescription}</span>
+                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">${i.EquipmentType}</span>
+                        </div>
+                        <span class="px-3 py-1 rounded-lg text-[10px] font-black border ${i.SIMNo ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}">
+                            ${i.SIMNo || 'PENDING'}
+                        </span>
+                    </div>
+                `).join('');
 
                 return `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                    <tr class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-8 py-6">
                             <div class="flex flex-col">
-                                <span class="font-bold text-slate-900 dark:text-slate-100">${req.StudentName}</span>
-                                <span class="text-[10px] text-slate-400 font-medium">${req.StudentEmail}</span>
-                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">PRN: ${req.StudentPRN}</span>
+                                <span class="font-black text-brand-dark text-sm tracking-tight">${reqId}</span>
+                                <span class="text-xs font-bold text-slate-900 mt-1">${first.StudentName}</span>
+                                <span class="text-[10px] font-medium text-slate-400">PRN: ${first.StudentPRN}</span>
                             </div>
+                        </td>
+                        <td class="px-8 py-6 min-w-[280px]">
+                            <div class="space-y-1">${equipmentHtml}</div>
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex flex-col">
-                                <span class="font-bold text-slate-900 dark:text-slate-100">${req.EquipmentDescription}</span>
-                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">SIM: ${req.EquipmentSIMNo}</span>
+                                <span class="text-xs font-bold text-brand-dark">${formatDate(first.FromDate)}</span>
+                                <span class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">to ${formatDate(first.ReturnDate)}</span>
                             </div>
                         </td>
-                        <td class="px-8 py-6 text-slate-600 dark:text-slate-400 font-medium">${formatDate(req.FromDate)} - ${formatDate(req.ReturnDate)}</td>
-                        <td class="px-8 py-6 text-right">${actionBtn}</td>
+                        <td class="px-8 py-6 text-right">
+                            <button 
+                                onclick="updateStatus('${reqId}', 'Issued')"
+                                ${!allSimsFilled ? 'disabled' : ''}
+                                class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg
+                                ${allSimsFilled 
+                                    ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20' 
+                                    : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'}"
+                            >
+                                Mark as Issued
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function renderInventory(data) {
-            const body = document.getElementById('inventory-body');
-            body.innerHTML = data.map(item => `
-                <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                    <td class="px-8 py-6">
-                        <div class="flex flex-col">
-                            <span class="font-bold text-slate-900 dark:text-slate-100">${item.Description}</span>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">SIM: ${item.SIMNo}</span>
+        function renderIssuedTable() {
+            const body = document.getElementById('issued-body');
+            const issued = allRequests.filter(r => r.ManagerStatus === 'Issued');
+            
+            if (issued.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" class="px-8 py-12 text-center text-slate-400 font-medium italic">No equipment currently issued.</td></tr>';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            body.innerHTML = issued.map(r => {
+                const retDate = new Date(r.ReturnDate);
+                const isOverdue = retDate < today;
+
+                return `
+                    <tr class="hover:bg-slate-50/50 transition-colors ${isOverdue ? 'bg-red-50/30' : ''}">
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-brand-dark text-sm">${r.StudentName}</span>
+                                <span class="text-[10px] font-medium text-slate-400">PRN: ${r.StudentPRN}</span>
+                                <span class="text-[9px] font-black uppercase tracking-widest text-slate-300 mt-1">${r.RequestID}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-brand-dark">${r.EquipmentDescription}</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-primary">${r.SIMNo}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-bold ${isOverdue ? 'text-primary' : 'text-slate-600'}">${formatDate(r.ReturnDate)}</span>
+                                ${isOverdue ? `
+                                    <div class="pulse-red bg-primary text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full">
+                                        Overdue
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <button 
+                                onclick="updateStatus('${r.RequestID}', 'Returned')"
+                                class="bg-brand-dark text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all"
+                            >
+                                Mark Returned
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderInventorySidebar() {
+            const container = document.getElementById('inventory-stats');
+            
+            // Group by type and calculate utilization
+            const stats = inventoryData.map(item => {
+                const total = parseInt(item.TotalQty) || 0;
+                const issued = parseInt(item.IssuedQty) || 0;
+                const percent = total > 0 ? Math.round((issued / total) * 100) : 0;
+                return { ...item, percent };
+            });
+
+            container.innerHTML = stats.map(item => `
+                <div class="space-y-3">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">${item.Type}</p>
+                            <h4 class="text-sm font-bold">${item.Description}</h4>
                         </div>
-                    </td>
-                    <td class="px-8 py-6 text-slate-500 dark:text-slate-400 text-sm">${item.Category}</td>
-                    <td class="px-8 py-6">
-                        <span class="inline-flex items-center px-3 py-1 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-lg border border-slate-200 dark:border-white/10">
-                            Qty: ${item.Qty}
-                        </span>
-                    </td>
-                    <td class="px-8 py-6 text-right">
-                        <button class="text-slate-400 hover:text-primary transition-colors">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                    </td>
-                </tr>
+                        <div class="text-right">
+                            <span class="text-lg font-black">${item.percent}%</span>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">${item.IssuedQty}/${item.TotalQty} Issued</p>
+                        </div>
+                    </div>
+                    <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-primary rounded-full transition-all duration-1000" style="width: ${item.percent}%"></div>
+                    </div>
+                </div>
             `).join('');
         }
 
-        async function updateManagerStatus(requestId, status) {
+        async function updateStatus(requestId, status) {
             const payload = {
                 action: 'updateManagerStatus',
                 requestId: requestId,
@@ -276,51 +512,57 @@
             };
 
             try {
-                await fetch(SCRIPT_URL, {
+                // Using no-cors as requested
+                fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                
-                showToast("Action Sent!", `Status update for ${requestId} sent.`);
-                setTimeout(() => {
-                    fetchApprovedRequests();
-                    fetchInventory();
-                }, 1000);
-            } catch (e) { 
-                console.error(e); 
-                showToast("Error", "Failed to send action.");
+
+                showToast(
+                    status === 'Issued' ? 'Equipment Issued!' : 'Equipment Returned!',
+                    `Request ${requestId} has been updated.`
+                );
+
+                // Optimistic UI or wait and refresh
+                setTimeout(fetchData, 1500);
+            } catch (e) {
+                console.error('Error updating status:', e);
             }
         }
 
         async function addEquipment() {
-            const name = document.getElementById('new-name').value;
-            const category = document.getElementById('new-category').value;
-            const total = document.getElementById('new-total').value;
-            const image = document.getElementById('new-image').value;
+            const type = document.getElementById('new-type').value;
+            const simNo = document.getElementById('new-sim').value;
+            const description = document.getElementById('new-desc').value;
+            const qty = document.getElementById('new-qty').value;
+            const serialNo = document.getElementById('new-serial').value;
+            const location = document.getElementById('new-location').value;
 
-            if (!name || !category || !total) return alert("Please fill all fields");
+            if (!type || !description || !qty) {
+                alert('Please fill in all required fields.');
+                return;
+            }
 
             const payload = {
                 action: 'addEquipment',
-                name, category, total, image
+                type, simNo, description, qty, serialNo, location
             };
 
             try {
-                await fetch(SCRIPT_URL, {
+                fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                
+
                 closeAddModal();
-                showToast("Added!", `${name} addition request sent.`);
-                setTimeout(fetchInventory, 1000);
-            } catch (e) { 
-                console.error(e); 
-                showToast("Error", "Failed to add equipment.");
+                showToast('Equipment Added!', `${description} has been registered.`);
+                setTimeout(fetchData, 1500);
+            } catch (e) {
+                console.error('Error adding equipment:', e);
             }
         }
 
@@ -329,15 +571,16 @@
 
         function showToast(title, msg) {
             const toast = document.getElementById('success-toast');
+            document.getElementById('toast-title').innerText = title;
             document.getElementById('toast-msg').innerText = msg;
-            toast.querySelector('h4').innerText = title;
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 4000);
         }
 
         function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
             const d = new Date(dateStr);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
     </script>
 </body>

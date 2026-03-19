@@ -221,7 +221,7 @@
         // Get student info from session
         const STUDENT_PRN = sessionStorage.getItem('student_prn');
         const STUDENT_NAME = sessionStorage.getItem('student_name') || 'Student';
-        const STUDENT_EMAIL = sessionStorage.getItem('student_email') || 'atharva.gijare@simc.edu';
+        const STUDENT_EMAIL = sessionStorage.getItem('student_email') || '';
 
         if (!STUDENT_PRN) {
             window.location.href = 'index.html';
@@ -262,19 +262,18 @@
             grid.innerHTML = data.map(item => `
                 <div class="bg-white dark:bg-slate-800/50 rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 hover:shadow-2xl transition-all group flex flex-col">
                     <div class="aspect-[4/3] w-full bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
-                        <img alt="${item.Description}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-700" src="${item.ImageURL || 'https://picsum.photos/seed/' + item.SIMNo + '/400/300'}"/>
+                        <img alt="${item.Description}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-700" src="https://picsum.photos/seed/${item.Type}/400/300"/>
                         <div class="absolute top-4 right-4 bg-header-bg/80 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-white/20">
-                            Qty: ${String(item.Qty).padStart(2, '0')}
+                            Available: ${String(item.AvailableQty).padStart(2, '0')}
                         </div>
                     </div>
                     <div class="p-7 flex flex-col flex-grow">
                         <div class="mb-4">
-                            <p class="text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-1">${item.Category}</p>
+                            <p class="text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-1">${item.Type}</p>
                             <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">${item.Description}</h3>
-                            <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">SIM NO: ${item.SIMNo}</p>
                         </div>
-                        <p class="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed line-clamp-2">Professional equipment for high-quality production. Serial: ${item.SerialNo || 'N/A'}</p>
-                        <button onclick="addToCart('${item.SIMNo}')" class="mt-auto w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]">
+                        <p class="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed line-clamp-2">Professional equipment for high-quality production.</p>
+                        <button onclick="addToCart('${item.Type}')" ${item.AvailableQty <= 0 ? 'disabled' : ''} class="mt-auto w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="material-symbols-outlined text-xl">add_shopping_cart</span>
                             <span>Add to Request</span>
                         </button>
@@ -285,47 +284,71 @@
 
         function renderRequests(data) {
             const body = document.getElementById('requests-body');
-            body.innerHTML = data.map(req => {
-                let statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
-                let statusText = req.HODStatus;
+            
+            // Group by RequestID
+            const grouped = data.reduce((acc, curr) => {
+                if (!acc[curr.RequestID]) acc[curr.RequestID] = [];
+                acc[curr.RequestID].push(curr);
+                return acc;
+            }, {});
 
-                if (req.ManagerStatus === 'Issued') {
+            body.innerHTML = Object.keys(grouped).map(reqId => {
+                const items = grouped[reqId];
+                const first = items[0];
+                
+                let statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
+                let statusText = first.HODStatus;
+
+                if (first.ManagerStatus === 'Issued') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Issued";
-                } else if (req.HODStatus === 'Approved') {
+                } else if (first.HODStatus === 'Approved') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Approved";
-                } else if (req.HODStatus === 'Rejected') {
+                } else if (first.HODStatus === 'Rejected') {
                     statusClass = "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200";
-                } else if (req.ManagerStatus === 'Returned') {
-                    statusClass = "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 border-slate-200";
-                    statusText = "Returned";
                 }
+
+                const showUpdateSIM = first.HODStatus === 'Approved' && items.some(i => !i.SIMNo);
 
                 return `
                     <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
                         <td class="px-8 py-6">
-                            <span class="font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">${req.EquipmentDescription}</span>
-                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">${req.EquipmentSIMNo}</p>
+                            <div class="flex flex-col gap-1">
+                                <span class="font-bold text-slate-900 dark:text-slate-100">ID: ${reqId}</span>
+                                <div class="text-xs text-slate-500">
+                                    ${items.map(i => `<div>• ${i.EquipmentDescription} ${i.SIMNo ? `<span class="text-emerald-500 font-bold">[SIM: ${i.SIMNo}]</span>` : ''}</div>`).join('')}
+                                </div>
+                            </div>
                         </td>
-                        <td class="px-8 py-6 text-slate-600 dark:text-slate-400 font-medium">${String(req.Quantity).padStart(2, '0')}</td>
-                        <td class="px-8 py-6 text-slate-600 dark:text-slate-400 font-medium">${formatDate(req.FromDate)} - ${formatDate(req.ReturnDate)}</td>
+                        <td class="px-8 py-6 text-slate-600 dark:text-slate-400 font-medium">${items.length}</td>
+                        <td class="px-8 py-6 text-slate-600 dark:text-slate-400 font-medium">${formatDate(first.FromDate)} - ${formatDate(first.ReturnDate)}</td>
                         <td class="px-8 py-6 text-right">
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${statusClass} border">
-                                ${statusText}
-                            </span>
+                            <div class="flex flex-col items-end gap-2">
+                                <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${statusClass} border">
+                                    ${statusText}
+                                </span>
+                                ${showUpdateSIM ? `
+                                    <button onclick="openSIMModal('${reqId}')" class="text-[10px] font-bold text-primary hover:underline uppercase tracking-widest">
+                                        Update SIM Numbers
+                                    </button>
+                                ` : ''}
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function addToCart(simNo) {
-            const item = inventory.find(i => i.SIMNo === simNo);
-            if (item && item.Qty > 0) {
-                cart.push(item);
+        function addToCart(type) {
+            const item = inventory.find(i => i.Type === type);
+            if (item && item.AvailableQty > 0) {
+                cart.push({
+                    type: item.Type,
+                    description: item.Description
+                });
                 updateCartUI();
-                showToast("Added to basket", `${item.Description} added to your request.`);
+                showToast("Added to basket", `${item.Type} added to your request.`);
             }
         }
 
@@ -342,8 +365,8 @@
                                 <span class="material-symbols-outlined text-primary">videocam</span>
                             </div>
                             <div>
-                                <p class="font-bold text-slate-900 dark:text-slate-100 text-xs">${item.Description}</p>
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">SIM: ${item.SIMNo}</p>
+                                <p class="font-bold text-slate-900 dark:text-slate-100 text-xs">${item.description}</p>
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${item.type}</p>
                             </div>
                         </div>
                         <button onclick="removeFromCart(${index})" class="text-slate-400 hover:text-primary">
@@ -380,43 +403,35 @@
             const to = document.getElementById('req-to').value;
 
             if (!purpose || !from || !to) return alert("Please fill all fields");
-
-            // Submit each item in cart as a separate request row for simplicity in inventory management
-            // or we could handle comma separated. The prompt says "EquipmentSIMNo" and "EquipmentDescription" (singular)
-            // so I will submit them one by one.
             
             const btn = document.getElementById('submit-request');
             btn.disabled = true;
             btn.innerText = "Submitting...";
 
             try {
-                for (const item of cart) {
-                    const payload = {
-                        action: 'submitRequest',
-                        studentName: STUDENT_NAME,
-                        studentPRN: STUDENT_PRN,
-                        studentEmail: STUDENT_EMAIL,
-                        equipmentSIMNo: item.SIMNo,
-                        equipmentDescription: item.Description,
-                        quantity: 1, // Defaulting to 1 per item in cart
-                        purpose: purpose,
-                        fromDate: from,
-                        returnDate: to
-                    };
+                const payload = {
+                    action: 'submitRequest',
+                    studentName: STUDENT_NAME,
+                    studentPRN: STUDENT_PRN,
+                    studentEmail: STUDENT_EMAIL,
+                    purpose: purpose,
+                    fromDate: from,
+                    returnDate: to,
+                    items: cart
+                };
 
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                }
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
                 
                 cart = [];
                 updateCartUI();
                 document.getElementById('cart-modal').classList.add('hidden');
-                showToast("Request Sent!", `Your requests have been sent for HOD approval.`);
-                fetchMyRequests();
+                showToast("Request Sent!", `Your request has been sent for HOD approval.`);
+                setTimeout(fetchMyRequests, 2000); // Wait for sheet update
             } catch (e) { 
                 console.error(e); 
                 alert("Submission failed. Check console.");
@@ -425,6 +440,65 @@
                 btn.innerText = "Send for HOD Approval";
             }
         };
+
+        // SIM Update Modal Logic
+        function openSIMModal(reqId) {
+            const reqItems = myRequests.filter(r => r.RequestID === reqId);
+            const modalHtml = `
+                <div id="sim-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+                    <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] shadow-modal-deep overflow-hidden border border-slate-100 dark:border-slate-700">
+                        <div class="p-8 border-b border-slate-50 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-700/30">
+                            <h3 class="text-xl font-black text-slate-900 dark:text-slate-100">Update SIM Numbers</h3>
+                            <button onclick="document.getElementById('sim-modal').remove()" class="text-slate-400 hover:text-primary">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <div class="p-8 space-y-4">
+                            <p class="text-xs text-slate-500 mb-4">Enter the SIM numbers for the equipment you received.</p>
+                            ${reqItems.map((item, idx) => `
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400">${item.EquipmentDescription}</label>
+                                    <input type="text" class="sim-input w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4" data-desc="${item.EquipmentDescription}" placeholder="Enter SIM Number">
+                                </div>
+                            `).join('')}
+                            <button onclick="submitSIMNumbers('${reqId}')" class="w-full bg-primary text-white font-black uppercase tracking-widest py-5 rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 mt-6">
+                                Submit SIM Numbers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        async function submitSIMNumbers(reqId) {
+            const inputs = document.querySelectorAll('.sim-input');
+            const updates = Array.from(inputs).map(input => ({
+                description: input.dataset.desc,
+                simNo: input.value.trim()
+            }));
+
+            if (updates.some(u => !u.simNo)) return alert("Please fill all SIM numbers");
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateSIMNumbers',
+                        requestId: reqId,
+                        updates: updates
+                    })
+                });
+
+                document.getElementById('sim-modal').remove();
+                showToast("Updated!", "SIM numbers have been updated.");
+                setTimeout(fetchMyRequests, 2000);
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
         function showToast(title, msg) {
             const toast = document.getElementById('success-toast');
@@ -443,7 +517,7 @@
         // Search Logic
         document.getElementById('search-input').oninput = (e) => {
             const term = e.target.value.toLowerCase();
-            const filtered = inventory.filter(i => i.Description.toLowerCase().includes(term) || i.Category.toLowerCase().includes(term) || i.SIMNo.toLowerCase().includes(term));
+            const filtered = inventory.filter(i => i.Description.toLowerCase().includes(term) || i.Type.toLowerCase().includes(term));
             renderInventory(filtered);
         };
     </script>

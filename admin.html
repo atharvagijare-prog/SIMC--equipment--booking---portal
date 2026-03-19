@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Admin Dashboard - SIMC Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#CF2E2E",
+                        "header-bg": "#0F172A",
+                        "background-light": "#F8FAFC",
+                        "background-dark": "#0F172A",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "1rem",
+                        "xl": "1.25rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2.25rem",
+                        "full": "9999px",
+                        "dashboard": "3.5rem"
+                    },
+                    boxShadow: {
+                        "modal-deep": "0 45px 90px -20px rgba(0,0,0,0.4)",
+                        "bento": "0 10px 40px -10px rgba(15, 23, 42, 0.08)"
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .tab-btn.active {
+            background-color: #CF2E2E;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(207, 46, 46, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+    <div class="layout-container flex h-full grow flex-col">
+        <!-- Header -->
+        <header class="flex items-center justify-between border-b border-solid border-white/10 bg-header-bg px-6 md:px-10 lg:px-40 py-5 sticky top-0 z-50">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center bg-primary rounded-xl p-2 shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-white text-2xl">admin_panel_settings</span>
+                </div>
+                <div class="flex flex-col">
+                    <h2 class="text-white text-lg font-bold leading-none tracking-tight">SIMC</h2>
+                    <span class="text-primary text-[10px] font-black uppercase tracking-[0.2em] leading-none mt-1">Admin Portal</span>
+                </div>
+            </div>
+            <div class="flex flex-1 justify-end gap-8 items-center">
+                <a href="index.html" class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-2xl h-11 px-6 bg-primary text-white text-sm font-bold tracking-wide hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                    <span>Logout</span>
+                </a>
+            </div>
+        </header>
+
+        <main class="px-6 md:px-10 lg:px-40 py-12 max-w-[1440px] mx-auto w-full">
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                <div class="bg-white dark:bg-slate-800/50 p-8 rounded-[2.5rem] shadow-bento border border-slate-100 dark:border-white/5">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">list_alt</span>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Requests</span>
+                    </div>
+                    <h3 id="stat-total-req" class="text-4xl font-black text-slate-900 dark:text-white">0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-800/50 p-8 rounded-[2.5rem] shadow-bento border border-slate-100 dark:border-white/5">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <span class="material-symbols-outlined">check_circle</span>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Approved</span>
+                    </div>
+                    <h3 id="stat-approved" class="text-4xl font-black text-slate-900 dark:text-white">0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-800/50 p-8 rounded-[2.5rem] shadow-bento border border-slate-100 dark:border-white/5">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                            <span class="material-symbols-outlined">pending</span>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Pending</span>
+                    </div>
+                    <h3 id="stat-pending" class="text-4xl font-black text-slate-900 dark:text-white">0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-800/50 p-8 rounded-[2.5rem] shadow-bento border border-slate-100 dark:border-white/5">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-900/10 dark:bg-white/10 flex items-center justify-center text-slate-900 dark:text-white">
+                            <span class="material-symbols-outlined">group</span>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Students</span>
+                    </div>
+                    <h3 id="stat-students" class="text-4xl font-black text-slate-900 dark:text-white">0</h3>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex gap-4 mb-8 bg-slate-100 dark:bg-white/5 p-2 rounded-3xl w-fit">
+                <button onclick="switchTab('requests')" id="tab-requests" class="tab-btn active px-8 py-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">history</span> All Requests
+                </button>
+                <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn px-8 py-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">inventory_2</span> Inventory
+                </button>
+                <button onclick="switchTab('students')" id="tab-students" class="tab-btn px-8 py-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">group</span> Students
+                </button>
+                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-8 py-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">settings</span> Settings
+                </button>
+            </div>
+
+            <!-- Requests Section -->
+            <div id="section-requests" class="tab-content">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+                    <h2 class="text-2xl font-bold tracking-tight">Master Request Log</h2>
+                    <div class="relative w-full md:w-96">
+                        <input id="request-search" oninput="filterRequests()" type="text" placeholder="Search by PRN, Name or ID..." class="w-full pl-12 pr-6 py-4 rounded-2xl border-slate-200 dark:border-white/10 dark:bg-slate-800/50 focus:ring-primary focus:border-primary outline-none text-sm transition-all"/>
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
+                            <tr>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Request ID</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Student</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Equipment</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Status</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-requests-body" class="divide-y divide-slate-100 dark:divide-white/5">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Inventory Section -->
+            <div id="section-inventory" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold tracking-tight">Inventory Master List</h2>
+                </div>
+                <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
+                            <tr>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Type</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Description</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Total</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Issued</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Available</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-body" class="divide-y divide-slate-100 dark:divide-white/5">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Students Section -->
+            <div id="section-students" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold tracking-tight">Student Database</h2>
+                </div>
+                <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
+                            <tr>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">PRN</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Name</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Specialization</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Semester</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-body" class="divide-y divide-slate-100 dark:divide-white/5">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="section-settings" class="tab-content hidden">
+                <div class="max-w-2xl">
+                    <h2 class="text-2xl font-bold tracking-tight mb-8">System Settings</h2>
+                    <div class="bg-white dark:bg-slate-800/50 p-10 rounded-[2.5rem] shadow-bento border border-slate-100 dark:border-white/5">
+                        <div class="space-y-8">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">HOD Email Address</label>
+                                <input id="set-hod-email" type="email" class="w-full px-6 py-4 rounded-2xl border-slate-200 dark:border-white/10 dark:bg-slate-900/50 focus:ring-primary focus:border-primary outline-none text-sm transition-all"/>
+                                <p class="text-[10px] text-slate-400 mt-2">Requests will be sent to this email for approval.</p>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Manager Email Address</label>
+                                <input id="set-manager-email" type="email" class="w-full px-6 py-4 rounded-2xl border-slate-200 dark:border-white/10 dark:bg-slate-900/50 focus:ring-primary focus:border-primary outline-none text-sm transition-all"/>
+                                <p class="text-[10px] text-slate-400 mt-2">Approved requests will be notified to this email.</p>
+                            </div>
+                            <button onclick="saveSettings()" class="w-full py-5 bg-primary text-white rounded-2xl font-bold tracking-wide hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
+                                <span class="material-symbols-outlined">save</span> Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Success Toast -->
+        <div id="success-toast" class="fixed bottom-10 right-10 z-[110] max-w-sm w-full hidden animate-in slide-in-from-right duration-500">
+            <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-modal-deep flex items-center gap-5 border border-white/10 ring-1 ring-emerald-500/50">
+                <div class="flex-shrink-0 bg-emerald-500/20 rounded-full p-2">
+                    <span class="material-symbols-outlined text-emerald-500 text-3xl">check_circle</span>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm mb-0.5">Success!</h4>
+                    <p id="toast-msg" class="text-xs text-slate-400 leading-relaxed">Action completed successfully.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw33N93V4yfKNP30K3r9iIZi3_URUrUsPpcjys69g4kronAV6smoAXs-a4sIjZSz4SBjw/exec';
+        let allRequests = [];
+        let allStudents = [];
+
+        window.onload = () => {
+            fetchAllData();
+            fetchInventory();
+        };
+
+        async function fetchAllData() {
+            try {
+                // Fetch requests
+                const reqRes = await fetch(`${SCRIPT_URL}?action=getRequests&role=admin`);
+                const requests = await reqRes.json();
+                
+                // Group by RequestID
+                const grouped = requests.reduce((acc, curr) => {
+                    if (!acc[curr.RequestID]) acc[curr.RequestID] = [];
+                    acc[curr.RequestID].push(curr);
+                    return acc;
+                }, {});
+
+                allRequests = Object.values(grouped);
+                renderRequests(allRequests);
+
+                // Fetch other admin data
+                const adminRes = await fetch(`${SCRIPT_URL}?action=getAdminData`);
+                const adminData = await adminRes.json();
+                
+                allStudents = adminData.students;
+                renderStudents(allStudents);
+                
+                // Set settings
+                document.getElementById('set-hod-email').value = adminData.settings.HOD_EMAIL;
+                document.getElementById('set-manager-email').value = adminData.settings.MANAGER_EMAIL;
+
+                updateStats(requests, allStudents.length);
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchInventory() {
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getInventory`);
+                const data = await res.json();
+                renderInventory(data);
+            } catch (e) { console.error(e); }
+        }
+
+        function updateStats(requests, studentCount) {
+            const total = allRequests.length;
+            const approved = allRequests.filter(g => g[0].HODStatus === 'Approved').length;
+            const pending = allRequests.filter(g => g[0].HODStatus === 'Pending').length;
+
+            document.getElementById('stat-total-req').innerText = total;
+            document.getElementById('stat-approved').innerText = approved;
+            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-students').innerText = studentCount;
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`section-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        function filterRequests() {
+            const query = document.getElementById('request-search').value.toLowerCase();
+            const filtered = allRequests.filter(group => {
+                const req = group[0];
+                return req.RequestID.toLowerCase().includes(query) || 
+                       req.StudentPRN.toString().includes(query) ||
+                       req.StudentName.toLowerCase().includes(query);
+            });
+            renderRequests(filtered);
+        }
+
+        function renderRequests(groups) {
+            const body = document.getElementById('admin-requests-body');
+            if (groups.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="px-8 py-10 text-center text-slate-400">No requests found.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = groups.map(items => {
+                const req = items[0];
+                const equipmentHtml = items.map(i => `
+                    <div class="text-[10px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">• ${i.EquipmentDescription}</div>
+                `).join('');
+
+                const hodStatusClass = req.HODStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-500' : (req.HODStatus === 'Rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500');
+                const mgrStatusClass = req.ManagerStatus === 'Issued' ? 'bg-emerald-500/10 text-emerald-500' : (req.ManagerStatus === 'Returned' ? 'bg-slate-500/10 text-slate-500' : 'bg-amber-500/10 text-amber-500');
+
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                        <td class="px-8 py-6">
+                            <span class="font-black text-slate-900 dark:text-white text-sm tracking-tight">${req.RequestID}</span>
+                            <span class="block text-[9px] text-slate-400 font-medium mt-1">${formatDate(req.RequestDate)}</span>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-900 dark:text-slate-100">${req.StudentName}</span>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">PRN: ${req.StudentPRN}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                ${equipmentHtml}
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col gap-2">
+                                <span class="px-2 py-1 ${hodStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">HOD: ${req.HODStatus}</span>
+                                <span class="px-2 py-1 ${mgrStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">MGR: ${req.ManagerStatus}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <button onclick="deleteRequest('${req.RequestID}')" class="p-2 text-slate-400 hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderInventory(data) {
+            const body = document.getElementById('inventory-body');
+            body.innerHTML = data.map(item => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                    <td class="px-8 py-6">
+                        <span class="font-black text-slate-900 dark:text-white text-xs uppercase tracking-widest">${item.Type}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="font-bold text-slate-700 dark:text-slate-300 text-sm">${item.Description}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="text-sm font-bold text-slate-900 dark:text-white">${item.TotalQty}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="text-sm font-bold text-primary">${item.IssuedQty}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="inline-flex items-center px-3 py-1 ${item.AvailableQty > 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'} text-xs font-bold rounded-lg border border-current/20">
+                            ${item.AvailableQty} Available
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderStudents(students) {
+            const body = document.getElementById('students-body');
+            body.innerHTML = students.map(s => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                    <td class="px-8 py-6 font-black text-slate-900 dark:text-white text-sm">${s.prn}</td>
+                    <td class="px-8 py-6 font-bold text-slate-700 dark:text-slate-300 text-sm">${s.name}</td>
+                    <td class="px-8 py-6 text-slate-500 dark:text-slate-400 text-sm">${s.specialization}</td>
+                    <td class="px-8 py-6 text-slate-500 dark:text-slate-400 text-sm">Sem ${s.semester}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function saveSettings() {
+            const hodEmail = document.getElementById('set-hod-email').value;
+            const managerEmail = document.getElementById('set-manager-email').value;
+
+            if (!hodEmail || !managerEmail) return alert("Please fill both emails.");
+
+            const payload = {
+                action: 'updateSettings',
+                hodEmail, managerEmail
+            };
+
+            try {
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                showToast("Settings Saved!", "HOD and Manager emails have been updated.");
+            } catch (e) { console.error(e); }
+        }
+
+        async function deleteRequest(requestId) {
+            if (!confirm(`Are you sure you want to delete request ${requestId}? This action cannot be undone.`)) return;
+
+            const payload = {
+                action: 'deleteRequest',
+                requestId: requestId
+            };
+
+            try {
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                showToast("Deleted!", `Request ${requestId} has been removed.`);
+                setTimeout(fetchAllData, 1500);
+            } catch (e) { console.error(e); }
+        }
+
+        function showToast(title, msg) {
+            const toast = document.getElementById('success-toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.querySelector('h4').innerText = title;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+    </script>
+</body>
+</html>
