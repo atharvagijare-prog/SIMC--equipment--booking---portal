@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>HOD Approval Dashboard - SIMC Portal</title>
+    <title>HOD Approval Portal - SIMC</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
@@ -46,15 +46,16 @@
             vertical-align: middle;
             line-height: 1;
         }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
     <div class="layout-container flex h-full grow flex-col">
-        <!-- Header -->
         <header class="flex items-center justify-between border-b border-solid border-white/10 bg-header-bg px-6 md:px-10 lg:px-40 py-5 sticky top-0 z-50">
             <div class="flex items-center gap-3">
                 <div class="flex items-center justify-center bg-primary rounded-xl p-2 shadow-lg shadow-primary/20">
-                    <span class="material-symbols-outlined text-white text-2xl">videocam</span>
+                    <span class="material-symbols-outlined text-white text-2xl">verified_user</span>
                 </div>
                 <div class="flex flex-col">
                     <h2 class="text-white text-lg font-bold leading-none tracking-tight">SIMC</h2>
@@ -68,74 +69,57 @@
             </div>
         </header>
 
-        <main id="main-content" class="px-6 md:px-10 lg:px-40 py-12 max-w-[1440px] mx-auto w-full">
-            <div id="dashboard-header" class="mb-10">
-                <h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-4xl font-bold leading-tight">Pending Approvals</h1>
-                <p class="text-slate-500 dark:text-slate-400 mt-2 text-lg">Review and manage student equipment requests.</p>
+        <main class="px-6 md:px-10 lg:px-40 py-12 max-w-[1440px] mx-auto w-full">
+            <div class="mb-12">
+                <h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-4xl font-bold leading-tight">Approval Queue</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-2 text-lg">Review and approve equipment requests from students.</p>
             </div>
 
-            <!-- Single Request View (for Email Links) -->
-            <div id="single-request-container" class="hidden">
-                <!-- Content injected here -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <div class="flex flex-col gap-4 rounded-dashboard p-8 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 shadow-bento group hover:border-amber-accent/30 transition-all">
+                    <div class="flex items-center justify-between">
+                        <p class="dark:text-slate-400 text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Pending Review</p>
+                        <div class="p-3 bg-amber-accent/10 rounded-2xl">
+                            <span class="material-symbols-outlined text-amber-accent text-2xl">hourglass_empty</span>
+                        </div>
+                    </div>
+                    <p id="stat-pending" class="text-slate-900 dark:text-white text-5xl font-black tabular-nums">00</p>
+                </div>
+                <div class="flex flex-col gap-4 rounded-dashboard p-8 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 shadow-bento group hover:border-primary/30 transition-all">
+                    <div class="flex items-center justify-between">
+                        <p class="dark:text-slate-400 text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Total Processed</p>
+                        <div class="p-3 bg-primary/10 rounded-2xl">
+                            <span class="material-symbols-outlined text-primary text-2xl">done_all</span>
+                        </div>
+                    </div>
+                    <p id="stat-processed" class="text-slate-900 dark:text-white text-5xl font-black tabular-nums">00</p>
+                </div>
             </div>
 
-            <!-- Requests Table (for Dashboard) -->
-            <div id="requests-table-container" class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
+            <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
                         <tr>
-                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Request ID</th>
-                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Student</th>
-                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Equipment</th>
-                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Duration</th>
+                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Request Details</th>
+                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Student Info</th>
+                            <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Purpose</th>
                             <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="hod-requests-body" class="divide-y divide-slate-100 dark:divide-white/5">
-                        <!-- Dynamic Rows Load Here -->
+                    <tbody id="requests-body" class="divide-y divide-slate-100 dark:divide-white/5">
                     </tbody>
                 </table>
             </div>
         </main>
 
-        <!-- Confirmation Screens -->
-        <div id="confirmation-screen" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-6 bg-slate-900/90 backdrop-blur-xl">
-            <div id="confirm-card" class="bg-white dark:bg-slate-800 max-w-md w-full rounded-[2.5rem] p-10 text-center shadow-2xl scale-95 opacity-0 transition-all duration-500">
-                <div id="confirm-icon-bg" class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8">
-                    <span id="confirm-icon" class="material-symbols-outlined text-5xl text-white">check</span>
-                </div>
-                <h2 id="confirm-title" class="text-3xl font-bold text-slate-900 dark:text-white mb-4">Approved!</h2>
-                <p id="confirm-msg" class="text-slate-500 dark:text-slate-400 mb-10 leading-relaxed">The student and manager have been notified via email.</p>
-                <button onclick="window.location.href='hod.html'" class="w-full py-5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-bold tracking-wide hover:opacity-90 transition-all">
-                    Back to Dashboard
-                </button>
-            </div>
-        </div>
-
-        <!-- Rejection Modal -->
-        <div id="rejection-modal" class="fixed inset-0 z-[150] hidden flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-            <div class="bg-white dark:bg-slate-800 max-w-md w-full rounded-[2.5rem] p-8 shadow-modal-deep">
-                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Reject Request</h3>
-                <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Please provide a reason for rejecting this request.</p>
-                
-                <textarea id="rejection-reason" rows="4" class="w-full rounded-2xl border-slate-200 dark:border-white/10 dark:bg-slate-900/50 p-4 text-sm focus:ring-primary focus:border-primary mb-6" placeholder="e.g., Equipment already booked for another event."></textarea>
-                
-                <div class="flex gap-3">
-                    <button onclick="closeRejectionModal()" class="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all">Cancel</button>
-                    <button id="confirm-reject-btn" class="flex-1 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary/90 transition-all">Confirm Reject</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Success Toast -->
         <div id="success-toast" class="fixed bottom-10 right-10 z-[110] max-w-sm w-full hidden animate-in slide-in-from-right duration-500">
             <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-modal-deep flex items-center gap-5 border border-white/10 ring-1 ring-primary/50">
                 <div class="flex-shrink-0 bg-primary/20 rounded-full p-2">
                     <span class="material-symbols-outlined text-primary text-3xl">check_circle</span>
                 </div>
                 <div>
-                    <h4 class="font-bold text-sm mb-0.5">Action Successful!</h4>
-                    <p id="toast-msg" class="text-xs text-slate-400 leading-relaxed">The request status has been updated.</p>
+                    <h4 class="font-bold text-sm mb-0.5">Success!</h4>
+                    <p id="toast-msg" class="text-xs text-slate-400 leading-relaxed">Action completed successfully.</p>
                 </div>
             </div>
         </div>
@@ -143,186 +127,110 @@
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw33N93V4yfKNP30K3r9iIZi3_URUrUsPpcjys69g4kronAV6smoAXs-a4sIjZSz4SBjw/exec';
-        let currentRejectRequestId = null;
+        let allRequests = [];
 
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const requestId = urlParams.get('id');
+            const reqId = urlParams.get('id');
             const action = urlParams.get('action');
 
-            if (requestId) {
-                handleEmailLink(requestId, action);
+            if (reqId) {
+                fetchSingleRequest(reqId, action);
             } else {
-                fetchPendingRequests();
+                fetchRequests();
             }
         };
 
-        async function handleEmailLink(id, action) {
-            document.getElementById('dashboard-header').classList.add('hidden');
-            document.getElementById('requests-table-container').classList.add('hidden');
-            document.getElementById('single-request-container').classList.remove('hidden');
-            
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=getRequestById&id=${id}`);
-                const data = await res.json();
-                
-                if (data.length === 0) {
-                    document.getElementById('single-request-container').innerHTML = `
-                        <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] p-12 text-center shadow-bento">
-                            <span class="material-symbols-outlined text-6xl text-slate-300 mb-6">error</span>
-                            <h2 class="text-2xl font-bold mb-2">Request Not Found</h2>
-                            <p class="text-slate-500">This request may have been processed or deleted.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                renderSingleRequest(data);
-                
-                // If action is pre-defined in URL, trigger it after a small delay
-                if (action === 'approve') {
-                    setTimeout(() => handleAction(id, 'Approved'), 1000);
-                } else if (action === 'reject') {
-                    setTimeout(() => openRejectionModal(id), 1000);
-                }
-
-            } catch (e) { console.error(e); }
-        }
-
-        function renderSingleRequest(items) {
-            const req = items[0];
-            const container = document.getElementById('single-request-container');
-            
-            container.innerHTML = `
-                <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] p-10 shadow-bento border border-slate-100 dark:border-white/5">
-                    <div class="flex flex-col md:flex-row justify-between items-start gap-8 mb-10">
-                        <div>
-                            <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">Request Details</span>
-                            <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">${req.RequestID}</h2>
-                            <p class="text-slate-500 dark:text-slate-400">Submitted on ${formatDate(req.RequestDate)}</p>
-                        </div>
-                        <div class="flex gap-4 w-full md:w-auto">
-                            <button onclick="handleAction('${req.RequestID}', 'Approved')" class="flex-1 md:flex-none px-8 py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
-                                <span class="material-symbols-outlined">check_circle</span> Approve
-                            </button>
-                            <button onclick="openRejectionModal('${req.RequestID}')" class="flex-1 md:flex-none px-8 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-                                <span class="material-symbols-outlined">cancel</span> Reject
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                        <div class="space-y-6">
-                            <div>
-                                <h4 class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Student Info</h4>
-                                <div class="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl">
-                                    <p class="font-bold text-slate-900 dark:text-white">${req.StudentName}</p>
-                                    <p class="text-sm text-slate-500">${req.StudentEmail}</p>
-                                    <p class="text-xs font-bold text-primary mt-2 uppercase tracking-widest">PRN: ${req.StudentPRN}</p>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Duration</h4>
-                                <div class="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl flex items-center gap-4">
-                                    <span class="material-symbols-outlined text-slate-400">calendar_today</span>
-                                    <p class="font-bold text-slate-700 dark:text-slate-200">${formatDate(req.FromDate)} - ${formatDate(req.ReturnDate)}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <h4 class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Equipment List</h4>
-                            <div class="border border-slate-100 dark:border-white/5 rounded-2xl overflow-hidden">
-                                <table class="w-full text-left">
-                                    <thead class="bg-slate-50 dark:bg-white/5">
-                                        <tr>
-                                            <th class="px-6 py-4 text-[10px] font-bold uppercase text-slate-400">Type</th>
-                                            <th class="px-6 py-4 text-[10px] font-bold uppercase text-slate-400">Description</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-50 dark:divide-white/5">
-                                        ${items.map(item => `
-                                            <tr>
-                                                <td class="px-6 py-4 font-bold text-slate-900 dark:text-white text-sm">${item.EquipmentType}</td>
-                                                <td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">${item.EquipmentDescription}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="mt-8 p-6 bg-amber-50 dark:bg-amber-500/5 rounded-2xl border border-amber-100 dark:border-amber-500/10">
-                                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 mb-2">Purpose of Request</h4>
-                                <p class="text-slate-700 dark:text-slate-300 italic text-sm">"${req.Purpose}"</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function fetchPendingRequests() {
+        async function fetchRequests() {
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=hod`);
-                const requests = await res.json();
-                
-                // Group by RequestID
-                const grouped = requests.reduce((acc, curr) => {
-                    if (!acc[curr.RequestID]) acc[curr.RequestID] = [];
-                    acc[curr.RequestID].push(curr);
-                    return acc;
-                }, {});
-
-                renderRequests(Object.values(grouped));
+                allRequests = await res.json();
+                renderRequests(allRequests);
+                updateStats();
             } catch (e) { console.error(e); }
         }
 
-        function renderRequests(groups) {
-            const body = document.getElementById('hod-requests-body');
-            if (groups.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" class="px-8 py-10 text-center text-slate-400">No pending requests found.</td></tr>`;
+        async function fetchSingleRequest(reqId, action) {
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=hod`);
+                const data = await res.json();
+                const single = data.filter(r => r.RequestID === reqId);
+
+                if (single.length > 0) {
+                    renderSingleRequest(single);
+                    if (action === 'approve') {
+                        updateStatus(reqId, 'Approved', true);
+                    } else if (action === 'reject') {
+                        setTimeout(() => {
+                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                        }, 800);
+                    }
+                } else {
+                    document.getElementById('requests-body').innerHTML = `
+                        <tr><td colspan="4" class="px-8 py-20 text-center text-slate-400 font-medium">
+                            Request not found or already processed.
+                        </td></tr>`;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderRequests(data) {
+            const body = document.getElementById('requests-body');
+            const pending = data.filter(r => r.HODStatus === 'Pending');
+
+            const grouped = pending.reduce((acc, curr) => {
+                if (!acc[curr.RequestID]) acc[curr.RequestID] = [];
+                acc[curr.RequestID].push(curr);
+                return acc;
+            }, {});
+
+            if (Object.keys(grouped).length === 0) {
+                body.innerHTML = `<tr><td colspan="4" class="px-8 py-20 text-center text-slate-400 font-medium">No pending requests to review.</td></tr>`;
                 return;
             }
 
-            body.innerHTML = groups.map(items => {
-                const req = items[0];
-                const equipmentHtml = items.map(i => `
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
-                        <div class="flex flex-col">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${i.EquipmentDescription}</span>
-                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">${i.EquipmentType}</span>
-                        </div>
-                    </div>
-                `).join('');
+            body.innerHTML = Object.keys(grouped).map(reqId => {
+                const items = grouped[reqId].filter(item =>
+                    item.EquipmentDescription &&
+                    item.EquipmentDescription !== "undefined" &&
+                    item.EquipmentDescription !== null &&
+                    item.EquipmentDescription !== ""
+                );
 
+                if (items.length === 0) return '';
+
+                const first = items[0];
                 return `
                     <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
                         <td class="px-8 py-6">
-                            <span class="font-black text-slate-900 dark:text-white text-sm tracking-tight">${req.RequestID}</span>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-col">
-                                <span class="font-bold text-slate-900 dark:text-slate-100">${req.StudentName}</span>
-                                <span class="text-[10px] text-slate-400 font-medium">${req.StudentEmail}</span>
-                                <span class="text-[10px] text-primary font-bold mt-1 uppercase tracking-widest">PRN: ${req.StudentPRN}</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-col">
-                                ${equipmentHtml}
-                                <div class="mt-2 p-2 bg-amber-50 dark:bg-amber-500/5 rounded-lg border border-amber-100 dark:border-amber-500/10">
-                                    <p class="text-[10px] text-slate-600 dark:text-slate-400 italic">"${req.Purpose}"</p>
+                            <div class="flex flex-col gap-1">
+                                <span class="font-bold text-slate-900 dark:text-slate-100">${reqId}</span>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    ${items.map(i => `<div>• ${i.EquipmentDescription}</div>`).join('')}
+                                </div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-primary mt-2">
+                                    ${formatDate(first.FromDate)} — ${formatDate(first.ReturnDate)}
                                 </div>
                             </div>
                         </td>
-                        <td class="px-8 py-6 text-slate-600 dark:text-slate-400 font-medium text-sm">${formatDate(req.FromDate)} - ${formatDate(req.ReturnDate)}</td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-900 dark:text-slate-100">${first.StudentName}</span>
+                                <span class="text-xs text-slate-500 mt-1">PRN: ${first.StudentPRN}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 max-w-xs">${first.Purpose}</p>
+                        </td>
                         <td class="px-8 py-6 text-right">
                             <div class="flex justify-end gap-3">
-                                <button onclick="handleAction('${req.RequestID}', 'Approved')" class="p-3 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-2xl transition-all shadow-sm">
-                                    <span class="material-symbols-outlined">check</span>
-                                </button>
-                                <button onclick="openRejectionModal('${req.RequestID}')" class="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all shadow-sm">
+                                <button onclick="updateStatus('${reqId}', 'Rejected')" 
+                                    class="p-3 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-2xl transition-all border border-red-100">
                                     <span class="material-symbols-outlined">close</span>
+                                </button>
+                                <button onclick="updateStatus('${reqId}', 'Approved')" 
+                                    class="p-3 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-2xl transition-all border border-emerald-100">
+                                    <span class="material-symbols-outlined">check</span>
                                 </button>
                             </div>
                         </td>
@@ -331,78 +239,136 @@
             }).join('');
         }
 
-        function openRejectionModal(id) {
-            currentRejectRequestId = id;
-            document.getElementById('rejection-modal').classList.remove('hidden');
-        }
+        function renderSingleRequest(items) {
+            const validItems = items.filter(item =>
+                item.EquipmentDescription &&
+                item.EquipmentDescription !== "undefined" &&
+                item.EquipmentDescription !== null &&
+                item.EquipmentDescription !== ""
+            );
 
-        function closeRejectionModal() {
-            document.getElementById('rejection-modal').classList.add('hidden');
-            document.getElementById('rejection-reason').value = '';
-            currentRejectRequestId = null;
-        }
-
-        document.getElementById('confirm-reject-btn').onclick = () => {
-            const reason = document.getElementById('rejection-reason').value;
-            if (!reason) {
-                alert("Please provide a reason for rejection.");
+            if (validItems.length === 0) {
+                document.getElementById('requests-body').innerHTML = `
+                    <tr><td colspan="4" class="px-8 py-20 text-center text-slate-400 font-medium">
+                        Request not found or invalid.
+                    </td></tr>`;
                 return;
             }
-            handleAction(currentRejectRequestId, 'Rejected', reason);
-            closeRejectionModal();
-        };
 
-        async function handleAction(requestId, status, reason = '') {
-            // Show loading state if needed
-            const payload = {
-                action: 'updateHODStatus',
-                requestId: requestId,
-                status: status,
-                reason: reason
-            };
+            const first = validItems[0];
+            const reqId = first.RequestID;
+
+            document.getElementById('requests-body').innerHTML = `
+                <tr class="bg-slate-50 dark:bg-white/5">
+                    <td class="px-8 py-10" colspan="4">
+                        <div class="max-w-2xl mx-auto bg-white dark:bg-slate-800 p-10 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-white/10">
+                            <div class="flex justify-between items-start mb-8">
+                                <div>
+                                    <h3 class="text-2xl font-black text-slate-900 dark:text-white">Request Review</h3>
+                                    <p class="text-primary font-bold uppercase tracking-widest text-[10px] mt-1">${reqId}</p>
+                                </div>
+                                <div class="px-4 py-2 bg-amber-100 text-amber-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-200">
+                                    Pending HOD
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-8 mb-8">
+                                <div>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Student</p>
+                                    <p class="font-bold text-slate-900 dark:text-white">${first.StudentName}</p>
+                                    <p class="text-sm text-slate-500">PRN: ${first.StudentPRN}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Duration</p>
+                                    <p class="font-bold text-slate-900 dark:text-white">${formatDate(first.FromDate)} — ${formatDate(first.ReturnDate)}</p>
+                                </div>
+                            </div>
+
+                            <div class="mb-8">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Equipment Requested</p>
+                                <div class="space-y-2">
+                                    ${validItems.map(i => `
+                                        <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
+                                            <span class="material-symbols-outlined text-primary text-sm">videocam</span>
+                                            <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${i.EquipmentDescription}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="mb-10">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Purpose</p>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">"${first.Purpose}"</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="updateStatus('${reqId}', 'Rejected')" 
+                                    class="w-full py-5 bg-slate-100 text-slate-600 font-black uppercase tracking-widest rounded-2xl hover:bg-red-50 hover:text-red-600 transition-all">
+                                    Reject
+                                </button>
+                                <button onclick="updateStatus('${reqId}', 'Approved')" 
+                                    class="w-full py-5 bg-primary text-white font-black uppercase tracking-widest rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
+                                    Approve
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        async function updateStatus(reqId, status, skipConfirm = false) {
+            if (!skipConfirm && !confirm(`Are you sure you want to ${status.toLowerCase()} this request?`)) return;
 
             try {
-                // Use fetch with no-cors for Google Apps Script POST
-                fetch(SCRIPT_URL, {
+                await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        action: 'updateHODStatus',
+                        requestId: reqId,
+                        status: status
+                    })
                 });
-                
-                showConfirmation(status);
-            } catch (e) { 
-                console.error(e); 
-                alert("Failed to update status. Please try again.");
+
+                showToast(
+                    status === 'Approved' ? 'Approved!' : 'Rejected',
+                    `Request ${reqId} has been ${status.toLowerCase()}.`
+                );
+
+                setTimeout(() => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('id')) {
+                        window.location.href = 'hod.html';
+                    } else {
+                        fetchRequests();
+                    }
+                }, 2000);
+            } catch (e) {
+                console.error(e);
+                alert("Action failed. Check console.");
             }
         }
 
-        function showConfirmation(status) {
-            const screen = document.getElementById('confirmation-screen');
-            const card = document.getElementById('confirm-card');
-            const iconBg = document.getElementById('confirm-icon-bg');
-            const icon = document.getElementById('confirm-icon');
-            const title = document.getElementById('confirm-title');
-            const msg = document.getElementById('confirm-msg');
+        function updateStats() {
+            const grouped = allRequests.reduce((acc, r) => {
+                acc[r.RequestID] = r;
+                return acc;
+            }, {});
+            const unique = Object.values(grouped);
+            const pending = unique.filter(r => r.HODStatus === 'Pending').length;
+            const processed = unique.filter(r => r.HODStatus !== 'Pending').length;
+            document.getElementById('stat-pending').innerText = String(pending).padStart(2, '0');
+            document.getElementById('stat-processed').innerText = String(processed).padStart(2, '0');
+        }
 
-            if (status === 'Approved') {
-                iconBg.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 bg-emerald-500 shadow-xl shadow-emerald-500/30";
-                icon.innerText = "check";
-                title.innerText = "Approved!";
-                title.className = "text-3xl font-bold text-emerald-500 mb-4";
-                msg.innerText = "The student and manager have been notified via email.";
-            } else {
-                iconBg.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 bg-primary shadow-xl shadow-primary/30";
-                icon.innerText = "close";
-                title.innerText = "Rejected";
-                title.className = "text-3xl font-bold text-primary mb-4";
-                msg.innerText = "The student has been notified of the rejection and the reason.";
-            }
-
-            screen.classList.remove('hidden');
-            setTimeout(() => {
-                card.classList.remove('scale-95', 'opacity-0');
-            }, 10);
+        function showToast(title, msg) {
+            const toast = document.getElementById('success-toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.querySelector('h4').innerText = title;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
         }
 
         function formatDate(dateStr) {
@@ -414,11 +380,7 @@
                 d = new Date(dateStr);
             }
             if (isNaN(d.getTime())) return 'N/A';
-            return d.toLocaleDateString('en-IN', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            });
+            return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
         }
     </script>
 </body>
