@@ -168,6 +168,8 @@
                         sessionStorage.setItem('student_name', validatedStudent.name);
                         // Defaulting email to PRN@simc.edu as email is not in the student database sheet
                         sessionStorage.setItem('student_email', prn + '@simc.edu'); 
+                        sessionStorage.setItem('student_specialization', validatedStudent.specialization);
+                        sessionStorage.setItem('student_academic_year', validatedStudent.semester);
                         window.location.href = 'student.html';
                     } else {
                         errorMsg.classList.remove('hidden');

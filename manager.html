@@ -148,6 +148,83 @@
             </div>
         </main>
 
+        <!-- Issue Modal -->
+        <div id="issue-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden">
+            <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] shadow-modal-deep overflow-hidden border border-slate-100 dark:border-slate-700">
+                <div class="p-8 border-b border-slate-50 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-700/30">
+                    <h3 class="text-xl font-black text-slate-900 dark:text-slate-100">Issue Equipment</h3>
+                    <button onclick="closeIssueModal()" class="text-slate-400 hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="p-8 space-y-6">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Equipment</p>
+                        <p id="issue-equip-name" class="font-bold text-slate-900 dark:text-white"></p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">SIM Number</p>
+                        <p id="issue-sim-no" class="font-bold text-emerald-500"></p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Issuing Authority Name</label>
+                        <input id="issuing-authority" type="text" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4" placeholder="Enter your name">
+                    </div>
+                </div>
+                <div class="p-8 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700">
+                    <button id="confirm-issue-btn" class="w-full bg-primary text-white font-black uppercase tracking-widest py-5 rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
+                        Confirm Issue
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Modal -->
+        <div id="return-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden">
+            <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] shadow-modal-deep overflow-hidden border border-slate-100 dark:border-slate-700">
+                <div class="p-8 border-b border-slate-50 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-700/30">
+                    <h3 class="text-xl font-black text-slate-900 dark:text-slate-100">Return Equipment</h3>
+                    <button onclick="closeReturnModal()" class="text-slate-400 hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="p-8 space-y-6">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Equipment</p>
+                        <p id="return-equip-name" class="font-bold text-slate-900 dark:text-white"></p>
+                    </div>
+                    <div class="space-y-3">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Return Condition</p>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="return-condition" value="Good" checked class="text-primary focus:ring-primary">
+                                <span class="text-sm font-medium">Good Condition</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="return-condition" value="Damaged" class="text-primary focus:ring-primary">
+                                <span class="text-sm font-medium">Damage/Issues</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Notes (Optional)</label>
+                        <textarea id="return-notes" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4 h-24" placeholder="Any specific issues..."></textarea>
+                    </div>
+                    <div class="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-900/30">
+                        <input type="checkbox" id="return-inspect-cb" class="mt-1 rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                        <label for="return-inspect-cb" class="text-xs text-amber-800 dark:text-amber-200 leading-relaxed font-medium">
+                            I confirm this equipment has been physically received and inspected.
+                        </label>
+                    </div>
+                </div>
+                <div class="p-8 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700">
+                    <button id="confirm-return-btn" disabled class="w-full bg-emerald-500 text-white font-black uppercase tracking-widest py-5 rounded-2xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Confirm Return
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Request Detail Modal (View Only) -->
         <div id="detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden">
             <div class="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[2.5rem] shadow-modal-deep overflow-hidden border border-slate-100 dark:border-slate-700 flex flex-col max-h-[90vh]">
@@ -177,13 +254,15 @@
                         <p id="modal-purpose" class="text-sm text-slate-600 dark:text-slate-400 italic leading-relaxed"></p>
                     </div>
                     <div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Equipment & SIM Numbers</p>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Equipment Status</p>
                         <div class="border border-slate-100 dark:border-white/5 rounded-2xl overflow-hidden">
                             <table class="w-full text-left">
                                 <thead class="bg-slate-50 dark:bg-white/5">
                                     <tr>
                                         <th class="px-6 py-4 text-[10px] font-bold uppercase text-slate-400">Equipment</th>
-                                        <th class="px-6 py-4 text-[10px] font-bold uppercase text-slate-400">SIM Number</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold uppercase text-slate-400">SIM No</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold uppercase text-slate-400">Status</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold uppercase text-slate-400">Authority</th>
                                     </tr>
                                 </thead>
                                 <tbody id="modal-equipment-body" class="divide-y divide-slate-50 dark:divide-white/5">
@@ -247,66 +326,105 @@
                 if (items.length === 0) return;
 
                 const first = items[0];
-                const allSimsFilled = items.every(i =>
-                    i.EquipmentSIMNo &&
-                    String(i.EquipmentSIMNo).trim() !== "" &&
-                    String(i.EquipmentSIMNo).trim() !== "undefined"
-                );
+                const issuedCount = items.filter(i => i.ManagerStatus === 'Issued').length;
+                const returnedCount = items.filter(i => i.ManagerStatus === 'Returned').length;
+                const isPartial = returnedCount > 0 && issuedCount > 0;
 
-                const rowHtml = `
-                    <tr onclick="openDetailModal('${reqId}')"
-                        class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
-                        <td class="px-8 py-6">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-bold text-slate-900 dark:text-slate-100 text-sm">${reqId}</span>
-                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[8px] font-black uppercase tracking-widest border border-emerald-200">
-                                    HOD Approved
-                                </span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-medium mt-1">
-                                ${formatDate(first.FromDate)} — ${formatDate(first.ReturnDate)}
-                            </div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <span class="font-bold text-slate-900 dark:text-slate-100">${first.StudentName}</span>
-                            <div class="text-xs text-slate-500 mt-1">PRN: ${first.StudentPRN}</div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-col gap-1.5">
-                                ${items.map(i => `
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="w-1 h-1 rounded-full bg-primary/40 shrink-0"></span>
-                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${i.EquipmentDescription}</span>
-                                        ${i.EquipmentSIMNo && String(i.EquipmentSIMNo).trim() !== "" && String(i.EquipmentSIMNo).trim() !== "undefined"
-                                            ? `<span class="text-[10px] font-black text-emerald-500">[${i.EquipmentSIMNo}]</span>`
+                // Pending Issuance Rows
+                let pendingIndex = 0;
+                items.forEach((item) => {
+                    if (item.ManagerStatus === 'Pending') {
+                        const allSimsFilled = items.every(i =>
+                            i.EquipmentSIMNo &&
+                            String(i.EquipmentSIMNo).trim() !== "" &&
+                            String(i.EquipmentSIMNo).trim() !== "undefined"
+                        );
+
+                        pendingRows.push(`
+                            <tr onclick="openDetailModal('${reqId}')" class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                                <td class="px-8 py-6">
+                                    ${pendingIndex === 0 ? `
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-sm">${reqId}</span>
+                                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[8px] font-black uppercase tracking-widest border border-emerald-200">
+                                                HOD Approved
+                                            </span>
+                                        </div>
+                                    ` : ''}
+                                </td>
+                                <td class="px-8 py-6">
+                                    ${pendingIndex === 0 ? `
+                                        <span class="font-bold text-slate-900 dark:text-slate-100">${first.StudentName}</span>
+                                        <div class="text-xs text-slate-500 mt-1">PRN: ${first.StudentPRN}</div>
+                                    ` : ''}
+                                </td>
+                                <td class="px-8 py-6">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${item.EquipmentDescription}</span>
+                                        ${item.EquipmentSIMNo && String(item.EquipmentSIMNo).trim() !== "" && String(item.EquipmentSIMNo).trim() !== "undefined"
+                                            ? `<span class="text-[10px] font-black text-emerald-500">[${item.EquipmentSIMNo}]</span>`
                                             : `<span class="text-[10px] font-bold text-amber-500 italic">SIM pending</span>`
                                         }
                                     </div>
-                                `).join('')}
-                            </div>
-                        </td>
-                        <td class="px-8 py-6 text-right" onclick="event.stopPropagation()">
-                            ${first.ManagerStatus === 'Pending' ? `
-                                <button
-                                    onclick="updateStatus('${reqId}', 'Issued')"
-                                    ${!allSimsFilled ? 'disabled' : ''}
-                                    title="${!allSimsFilled ? 'Student must enter all SIM numbers first' : 'Mark as Issued'}"
-                                    class="px-6 py-3 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-30 disabled:cursor-not-allowed">
-                                    Mark as Issued
-                                </button>
-                            ` : `
-                                <button
-                                    onclick="updateStatus('${reqId}', 'Returned')"
-                                    class="px-6 py-3 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20">
-                                    Mark as Returned
-                                </button>
-                            `}
-                        </td>
-                    </tr>
-                `;
+                                </td>
+                                <td class="px-8 py-6 text-right" onclick="event.stopPropagation()">
+                                    <button
+                                        onclick="openIssueModal('${reqId}', '${item.EquipmentDescription}', '${item.EquipmentSIMNo}')"
+                                        ${!allSimsFilled ? 'disabled' : ''}
+                                        class="px-6 py-3 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-30 disabled:cursor-not-allowed">
+                                        Issue Item
+                                    </button>
+                                </td>
+                            </tr>
+                        `);
+                        pendingIndex++;
+                    }
+                });
 
-                if (first.ManagerStatus === 'Pending') pendingRows.push(rowHtml);
-                else if (first.ManagerStatus === 'Issued') activeRows.push(rowHtml);
+                // Active Loan Rows
+                let activeIndex = 0;
+                items.forEach((item) => {
+                    if (item.ManagerStatus === 'Issued') {
+                        activeRows.push(`
+                            <tr onclick="openDetailModal('${reqId}')" class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                                <td class="px-8 py-6">
+                                    ${activeIndex === 0 ? `
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-slate-900 dark:text-slate-100 text-sm">${reqId}</span>
+                                            ${isPartial ? `
+                                                <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[8px] font-black uppercase tracking-widest border border-amber-200">
+                                                    Partial Return
+                                                </span>
+                                            ` : ''}
+                                        </div>
+                                    ` : ''}
+                                </td>
+                                <td class="px-8 py-6">
+                                    ${activeIndex === 0 ? `
+                                        <span class="font-bold text-slate-900 dark:text-slate-100">${first.StudentName}</span>
+                                    ` : ''}
+                                </td>
+                                <td class="px-8 py-6">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${item.EquipmentDescription}</span>
+                                        <span class="text-[10px] font-black text-emerald-500">[${item.EquipmentSIMNo}]</span>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 text-slate-500 text-xs font-medium">
+                                    ${formatDate(item.ReturnDate)}
+                                </td>
+                                <td class="px-8 py-6 text-right" onclick="event.stopPropagation()">
+                                    <button
+                                        onclick="openReturnModal('${reqId}', '${item.EquipmentDescription}')"
+                                        class="px-6 py-3 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20">
+                                        Return Item
+                                    </button>
+                                </td>
+                            </tr>
+                        `);
+                        activeIndex++;
+                    }
+                });
             });
 
             pendingBody.innerHTML = pendingRows.length
@@ -315,8 +433,104 @@
 
             activeBody.innerHTML = activeRows.length
                 ? activeRows.join('')
-                : `<tr><td colspan="4" class="px-8 py-12 text-center text-slate-400 italic">No active loans.</td></tr>`;
+                : `<tr><td colspan="5" class="px-8 py-12 text-center text-slate-400 italic">No active loans.</td></tr>`;
         }
+
+        // Issue Modal Logic
+        let currentIssueData = null;
+        function openIssueModal(reqId, desc, sim) {
+            currentIssueData = { reqId, desc };
+            document.getElementById('issue-equip-name').innerText = desc;
+            document.getElementById('issue-sim-no').innerText = sim;
+            document.getElementById('issuing-authority').value = '';
+            document.getElementById('issue-modal').classList.remove('hidden');
+        }
+        function closeIssueModal() {
+            document.getElementById('issue-modal').classList.add('hidden');
+        }
+        document.getElementById('confirm-issue-btn').onclick = async () => {
+            const authority = document.getElementById('issuing-authority').value.trim();
+            if (!authority) return alert("Please enter issuing authority name");
+
+            const btn = document.getElementById('confirm-issue-btn');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateManagerStatus',
+                        requestId: currentIssueData.reqId,
+                        equipmentDescription: currentIssueData.desc,
+                        status: 'Issued',
+                        issuingAuthority: authority
+                    })
+                });
+                showToast('Success!', 'Item issued successfully.');
+                closeIssueModal();
+                setTimeout(fetchRequests, 2000);
+            } catch (e) {
+                console.error(e);
+                alert("Action failed.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Confirm Issue";
+            }
+        };
+
+        // Return Modal Logic
+        let currentReturnData = null;
+        function openReturnModal(reqId, desc) {
+            currentReturnData = { reqId, desc };
+            document.getElementById('return-equip-name').innerText = desc;
+            document.getElementById('return-notes').value = '';
+            document.getElementById('return-inspect-cb').checked = false;
+            document.getElementById('confirm-return-btn').disabled = true;
+            document.getElementById('return-modal').classList.remove('hidden');
+        }
+        function closeReturnModal() {
+            document.getElementById('return-modal').classList.add('hidden');
+        }
+        document.getElementById('return-inspect-cb').onchange = (e) => {
+            document.getElementById('confirm-return-btn').disabled = !e.target.checked;
+        };
+        document.getElementById('confirm-return-btn').onclick = async () => {
+            const condition = document.querySelector('input[name="return-condition"]:checked').value;
+            const notes = document.getElementById('return-notes').value.trim();
+
+            const btn = document.getElementById('confirm-return-btn');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateManagerStatus',
+                        requestId: currentReturnData.reqId,
+                        equipmentDescription: currentReturnData.desc,
+                        status: 'Returned',
+                        returnCondition: condition,
+                        returnNotes: notes,
+                        returnAgreementSigned: true
+                    })
+                });
+                showToast('Success!', 'Item returned successfully.');
+                closeReturnModal();
+                setTimeout(fetchRequests, 2000);
+            } catch (e) {
+                console.error(e);
+                alert("Action failed.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Confirm Return";
+            }
+        };
 
         function openDetailModal(reqId) {
             const items = allRequests.filter(r =>
@@ -340,10 +554,18 @@
                         <span class="text-sm font-bold text-slate-700 dark:text-slate-200">${i.EquipmentDescription}</span>
                     </td>
                     <td class="px-6 py-4">
-                        ${i.EquipmentSIMNo && String(i.EquipmentSIMNo).trim() !== "" && String(i.EquipmentSIMNo).trim() !== "undefined"
-                            ? `<span class="text-sm font-black text-emerald-500">${i.EquipmentSIMNo}</span>`
-                            : `<span class="text-sm font-medium text-slate-400 italic">Not yet entered</span>`
-                        }
+                        <span class="text-sm font-black text-emerald-500">${i.EquipmentSIMNo || 'N/A'}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border 
+                            ${i.ManagerStatus === 'Returned' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 
+                              i.ManagerStatus === 'Issued' ? 'bg-amber-100 text-amber-700 border-amber-200' : 
+                              'bg-slate-100 text-slate-700 border-slate-200'}">
+                            ${i.ManagerStatus}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-xs text-slate-500">${i.IssuingAuthority || '—'}</span>
                     </td>
                 </tr>
             `).join('');
@@ -355,38 +577,11 @@
             document.getElementById('detail-modal').classList.add('hidden');
         }
 
-        async function updateStatus(reqId, status) {
-            if (!confirm(`Are you sure you want to mark this as ${status}?`)) return;
-
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'updateManagerStatus',
-                        requestId: reqId,
-                        status: status
-                    })
-                });
-
-                showToast('Success!', `Request ${reqId} marked as ${status}.`);
-                setTimeout(fetchRequests, 2000);
-            } catch (e) {
-                console.error(e);
-                alert("Action failed. Check console.");
-            }
-        }
-
         function updateStats() {
-            const grouped = allRequests.reduce((acc, r) => {
-                acc[r.RequestID] = r;
-                return acc;
-            }, {});
-            const unique = Object.values(grouped);
-            document.getElementById('stat-to-issue').innerText = String(unique.filter(r => r.ManagerStatus === 'Pending').length).padStart(2, '0');
-            document.getElementById('stat-issued').innerText = String(unique.filter(r => r.ManagerStatus === 'Issued').length).padStart(2, '0');
-            document.getElementById('stat-returned').innerText = String(unique.filter(r => r.ManagerStatus === 'Returned').length).padStart(2, '0');
+            const items = allRequests.filter(r => r.EquipmentDescription && r.EquipmentDescription !== "undefined");
+            document.getElementById('stat-to-issue').innerText = String(items.filter(r => r.ManagerStatus === 'Pending').length).padStart(2, '0');
+            document.getElementById('stat-issued').innerText = String(items.filter(r => r.ManagerStatus === 'Issued').length).padStart(2, '0');
+            document.getElementById('stat-returned').innerText = String(items.filter(r => r.ManagerStatus === 'Returned').length).padStart(2, '0');
         }
 
         function showToast(title, msg) {

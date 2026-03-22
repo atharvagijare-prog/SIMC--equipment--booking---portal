@@ -110,6 +110,23 @@
                     </tbody>
                 </table>
             </div>
+            <div class="mt-16">
+                <h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight mb-8">Currently Issued Equipment</h2>
+                <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
+                            <tr>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Request ID</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Student</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Equipment</th>
+                                <th class="px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Return Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="issued-body" class="divide-y divide-slate-100 dark:divide-white/5">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
 
         <div id="success-toast" class="fixed bottom-10 right-10 z-[110] max-w-sm w-full hidden animate-in slide-in-from-right duration-500">
@@ -176,7 +193,36 @@
 
         function renderRequests(data) {
             const body = document.getElementById('requests-body');
+            const issuedBody = document.getElementById('issued-body');
+            
             const pending = data.filter(r => r.HODStatus === 'Pending');
+            const issued = data.filter(r => r.ManagerStatus === 'Issued');
+
+            // Render Issued
+            if (issued.length === 0) {
+                issuedBody.innerHTML = `<tr><td colspan="4" class="px-8 py-20 text-center text-slate-400 font-medium">No equipment currently issued.</td></tr>`;
+            } else {
+                issuedBody.innerHTML = issued.map(item => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                        <td class="px-8 py-6">
+                            <span class="font-bold text-slate-900 dark:text-slate-100">${item.RequestID}</span>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-900 dark:text-slate-100">${item.StudentName}</span>
+                                <span class="text-xs text-slate-500 mt-1">PRN: ${item.StudentPRN}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${item.EquipmentDescription}</span>
+                            ${item.EquipmentSIMNo ? `<span class="text-[10px] font-black text-emerald-500 ml-2">[${item.EquipmentSIMNo}]</span>` : ''}
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="text-xs font-bold text-primary">${formatDate(item.ReturnDate)}</span>
+                        </td>
+                    </tr>
+                `).join('');
+            }
 
             const grouped = pending.reduce((acc, curr) => {
                 if (!acc[curr.RequestID]) acc[curr.RequestID] = [];
