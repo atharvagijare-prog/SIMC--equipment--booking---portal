@@ -398,7 +398,7 @@
                 const first = items[0];
                 
                 let statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
-                let statusText = first.HODStatus;
+                let statusText = first.HODStatus === 'Pending' ? 'Pending Faculty Approval' : first.HODStatus;
 
                 if (first.ManagerStatus === 'Issued') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
