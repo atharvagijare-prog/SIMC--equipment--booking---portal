@@ -119,8 +119,8 @@ async function startServer() {
         "atharvagijare111@gmail.com",
         `Equipment Request Approval — ${data.studentName}`,
         `New Request from ${data.studentName} (PRN: ${data.studentPRN}) for ${data.equipmentDescription}. 
-        Approve: ${VERCEL_URL}/hod.html?id=${requestId}&action=approve
-        Reject: ${VERCEL_URL}/hod.html?id=${requestId}&action=reject`
+        Approve: ${VERCEL_URL}/faculty.html?id=${requestId}&action=approve
+        Reject: ${VERCEL_URL}/faculty.html?id=${requestId}&action=reject`
       );
 
       return res.json({ success: true, requestId });

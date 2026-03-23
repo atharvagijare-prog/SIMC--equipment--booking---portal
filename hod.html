@@ -78,7 +78,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                 <div class="flex flex-col gap-4 rounded-dashboard p-8 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 shadow-bento group hover:border-amber-accent/30 transition-all">
                     <div class="flex items-center justify-between">
-                        <p class="dark:text-slate-400 text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Pending Review</p>
+                        <p class="dark:text-slate-400 text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Approval Pending</p>
                         <div class="p-3 bg-amber-accent/10 rounded-2xl">
                             <span class="material-symbols-outlined text-amber-accent text-2xl">hourglass_empty</span>
                         </div>
@@ -128,6 +128,34 @@
                 </div>
             </div>
         </main>
+
+        <div id="partial-modal" class="fixed inset-0 z-[100] hidden">
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[2.5rem] shadow-modal-deep overflow-hidden border border-slate-100 dark:border-white/10 flex flex-col max-h-[90vh]">
+                    <div class="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-900 dark:text-white">Partial Approval</h3>
+                            <p id="partial-req-id" class="text-primary font-bold uppercase tracking-widest text-[10px] mt-1"></p>
+                        </div>
+                        <button onclick="closePartialModal()" class="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors">
+                            <span class="material-symbols-outlined text-slate-400">close</span>
+                        </button>
+                    </div>
+                    <div id="partial-items-container" class="p-8 overflow-y-auto space-y-6">
+                        <!-- Items with radio buttons will be injected here -->
+                    </div>
+                    <div class="p-8 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-white/5 flex gap-4">
+                        <button onclick="closePartialModal()" class="flex-1 py-4 bg-white dark:bg-slate-800 text-slate-600 font-black uppercase tracking-widest rounded-2xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 transition-all">
+                            Cancel
+                        </button>
+                        <button id="partial-submit-btn" onclick="submitPartialDecision()" class="flex-1 py-4 bg-primary text-white font-black uppercase tracking-widest rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
+                            Submit Decision
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div id="success-toast" class="fixed bottom-10 right-10 z-[110] max-w-sm w-full hidden animate-in slide-in-from-right duration-500">
             <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-modal-deep flex items-center gap-5 border border-white/10 ring-1 ring-primary/50">
@@ -181,6 +209,8 @@
                         setTimeout(() => {
                             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                         }, 800);
+                    } else if (action === 'partial') {
+                        openPartialModal(reqId);
                     }
                 } else {
                     document.getElementById('requests-body').innerHTML = `
@@ -269,14 +299,18 @@
                             <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 max-w-xs">${first.Purpose}</p>
                         </td>
                         <td class="px-8 py-6 text-right">
-                            <div class="flex justify-end gap-3">
-                                <button onclick="updateStatus('${reqId}', 'Rejected')" 
-                                    class="p-3 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-2xl transition-all border border-red-100">
-                                    <span class="material-symbols-outlined">close</span>
-                                </button>
+                            <div class="flex justify-end gap-2">
                                 <button onclick="updateStatus('${reqId}', 'Approved')" 
-                                    class="p-3 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-2xl transition-all border border-emerald-100">
-                                    <span class="material-symbols-outlined">check</span>
+                                    class="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all border border-emerald-100 text-[10px] font-black uppercase tracking-widest">
+                                    Approve All
+                                </button>
+                                <button onclick="openPartialModal('${reqId}')" 
+                                    class="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all border border-blue-100 text-[10px] font-black uppercase tracking-widest">
+                                    Partial Approval
+                                </button>
+                                <button onclick="updateStatus('${reqId}', 'Need to Discuss')" 
+                                    class="px-4 py-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all border border-amber-100 text-[10px] font-black uppercase tracking-widest">
+                                    Need to Discuss
                                 </button>
                             </div>
                         </td>
@@ -347,14 +381,18 @@
                                 <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">"${first.Purpose}"</p>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <button onclick="updateStatus('${reqId}', 'Rejected')" 
-                                    class="w-full py-5 bg-slate-100 text-slate-600 font-black uppercase tracking-widest rounded-2xl hover:bg-red-50 hover:text-red-600 transition-all">
-                                    Reject
-                                </button>
+                            <div class="grid grid-cols-3 gap-4">
                                 <button onclick="updateStatus('${reqId}', 'Approved')" 
-                                    class="w-full py-5 bg-primary text-white font-black uppercase tracking-widest rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
-                                    Approve
+                                    class="w-full py-4 bg-emerald-600 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200">
+                                    Approve All
+                                </button>
+                                <button onclick="openPartialModal('${reqId}')" 
+                                    class="w-full py-4 bg-blue-600 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                                    Partial
+                                </button>
+                                <button onclick="updateStatus('${reqId}', 'Need to Discuss')" 
+                                    class="w-full py-4 bg-amber-500 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-200">
+                                    Discuss
                                 </button>
                             </div>
                         </div>
@@ -364,7 +402,8 @@
         }
 
         async function updateStatus(reqId, status, skipConfirm = false) {
-            if (!skipConfirm && !confirm(`Are you sure you want to ${status.toLowerCase()} this request?`)) return;
+            const statusLabel = status === 'Need to Discuss' ? 'mark as "Need to Discuss"' : status.toLowerCase();
+            if (!skipConfirm && !confirm(`Are you sure you want to ${statusLabel} this request?`)) return;
 
             try {
                 await fetch(SCRIPT_URL, {
@@ -379,14 +418,14 @@
                 });
 
                 showToast(
-                    status === 'Approved' ? 'Approved!' : 'Rejected',
-                    `Request ${reqId} has been ${status.toLowerCase()}.`
+                    status === 'Approved' ? 'Approved!' : (status === 'Need to Discuss' ? 'Discussion Requested' : 'Rejected'),
+                    `Request ${reqId} has been updated.`
                 );
 
                 setTimeout(() => {
                     const urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.get('id')) {
-                        window.location.href = 'hod.html';
+                        window.location.href = 'faculty.html';
                     } else {
                         fetchRequests();
                     }
@@ -394,6 +433,94 @@
             } catch (e) {
                 console.error(e);
                 alert("Action failed. Check console.");
+            }
+        }
+
+        function openPartialModal(reqId) {
+            const items = allRequests.filter(r => r.RequestID === reqId && r.HODStatus === 'Pending');
+            if (items.length === 0) {
+                // If we came from a single request link, we might need to fetch again or it's already processed
+                fetchRequests().then(() => {
+                    const freshItems = allRequests.filter(r => r.RequestID === reqId && r.HODStatus === 'Pending');
+                    if (freshItems.length > 0) populatePartialModal(reqId, freshItems);
+                });
+                return;
+            }
+            populatePartialModal(reqId, items);
+        }
+
+        function populatePartialModal(reqId, items) {
+            document.getElementById('partial-req-id').innerText = `Request ID: ${reqId}`;
+            const container = document.getElementById('partial-items-container');
+            
+            container.innerHTML = items.map((item, idx) => `
+                <div class="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="material-symbols-outlined text-primary">videocam</span>
+                        <span class="font-bold text-slate-900 dark:text-white">${item.EquipmentDescription}</span>
+                    </div>
+                    <div class="flex gap-4">
+                        <label class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-emerald-50 transition-all has-[:checked]:bg-emerald-500 has-[:checked]:text-white has-[:checked]:border-emerald-500">
+                            <input type="radio" name="item-${idx}" value="Approved" checked class="hidden">
+                            <span class="text-[10px] font-black uppercase tracking-widest">Approve</span>
+                        </label>
+                        <label class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-red-50 transition-all has-[:checked]:bg-red-500 has-[:checked]:text-white has-[:checked]:border-red-500">
+                            <input type="radio" name="item-${idx}" value="Rejected" class="hidden">
+                            <span class="text-[10px] font-black uppercase tracking-widest">Reject</span>
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('partial-modal').classList.remove('hidden');
+            // Store current items for submission
+            document.getElementById('partial-modal').dataset.items = JSON.stringify(items);
+        }
+
+        function closePartialModal() {
+            document.getElementById('partial-modal').classList.add('hidden');
+        }
+
+        async function submitPartialDecision() {
+            const modal = document.getElementById('partial-modal');
+            const items = JSON.parse(modal.dataset.items);
+            const reqId = items[0].RequestID;
+            
+            const decisions = items.map((item, idx) => {
+                const radio = document.querySelector(`input[name="item-${idx}"]:checked`);
+                return {
+                    description: item.EquipmentDescription,
+                    status: radio ? radio.value : 'Approved'
+                };
+            });
+
+            const btn = document.getElementById('partial-submit-btn');
+            btn.disabled = true;
+            btn.innerText = "Submitting...";
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updatePartialApproval',
+                        requestId: reqId,
+                        decisions: decisions
+                    })
+                });
+
+                showToast("Partial Approval", "Decisions have been submitted.");
+                closePartialModal();
+                
+                setTimeout(() => {
+                    window.location.href = 'faculty.html';
+                }, 2000);
+            } catch (e) {
+                console.error(e);
+                alert("Submission failed.");
+                btn.disabled = false;
+                btn.innerText = "Submit Decision";
             }
         }
 

@@ -133,8 +133,24 @@
                         <!-- Pills will be injected here -->
                     </div>
                 </div>
-                <div id="equipment-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Dynamic Cards Load Here -->
+                
+                <div class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-bento overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/10">
+                            <tr>
+                                <th class="px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Sr.No</th>
+                                <th class="px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Equipment</th>
+                                <th class="px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Type</th>
+                                <th class="px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Fixed Stock</th>
+                                <th class="px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Available Qty</th>
+                                <th class="px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Remark</th>
+                                <th class="px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Select</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equipment-table-body" class="divide-y divide-slate-100 dark:divide-white/5">
+                            <!-- Dynamic Rows Load Here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -189,7 +205,7 @@
                                 <input id="req-mobile" type="tel" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-3" placeholder="Enter Mobile No.">
                             </div>
                             <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Submission Date</label>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Assignment Submission Date</label>
                                 <input id="req-submission-date" type="date" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-3">
                             </div>
                         </div>
@@ -359,28 +375,42 @@
         }
 
         function renderInventory(data) {
-            const grid = document.getElementById('equipment-grid');
-            grid.innerHTML = data.map(item => `
-                <div class="bg-white dark:bg-slate-800/50 rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 hover:shadow-2xl transition-all group flex flex-col">
-                    <div class="aspect-[4/3] w-full bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
-                        <img alt="${item.Description}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-700" src="https://picsum.photos/seed/${item.Type}/400/300"/>
-                        <div class="absolute top-4 right-4 bg-header-bg/80 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-white/20">
-                            Available: ${String(item.AvailableQty).padStart(2, '0')}
-                        </div>
-                    </div>
-                    <div class="p-7 flex flex-col flex-grow">
-                        <div class="mb-4">
-                            <p class="text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-1">${item.Type}</p>
-                            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">${item.Description}</h3>
-                        </div>
-                        <p class="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed line-clamp-2">Professional equipment for high-quality production.</p>
-                        <button onclick="addToCart('${item.Type}')" ${item.AvailableQty <= 0 ? 'disabled' : ''} class="mt-auto w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span class="material-symbols-outlined text-xl">add_shopping_cart</span>
-                            <span>Add to Request</span>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+            const body = document.getElementById('equipment-table-body');
+            body.innerHTML = data.map((item, index) => {
+                const isSelected = cart.some(c => c.description === item.Description);
+                const isAvailable = item.AvailableQty > 0;
+                const remarkColor = isAvailable ? 'text-emerald-500' : 'text-red-500';
+                const remarkText = isAvailable ? 'Available' : 'Not Available';
+                
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 text-sm font-medium text-slate-500">${index + 1}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-slate-100">${item.Description}</td>
+                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">${item.Type}</td>
+                        <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">${item.TotalQty}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-slate-100">${item.AvailableQty}</td>
+                        <td class="px-6 py-4 text-sm font-bold ${remarkColor}">${remarkText}</td>
+                        <td class="px-6 py-4 text-center">
+                            <input type="checkbox" 
+                                ${isSelected ? 'checked' : ''} 
+                                ${!isAvailable ? 'disabled' : ''}
+                                onchange="toggleCartItem('${item.Description}', this.checked)"
+                                class="rounded border-slate-300 text-primary focus:ring-primary h-5 w-5 cursor-pointer disabled:cursor-not-allowed">
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleCartItem(description, isChecked) {
+            if (isChecked) {
+                addToCart(description);
+            } else {
+                const index = cart.findIndex(c => c.description === description);
+                if (index !== -1) {
+                    removeFromCart(index);
+                }
+            }
         }
 
         function renderRequests(data) {
@@ -397,20 +427,26 @@
                 const items = grouped[reqId];
                 const first = items[0];
                 
-                let statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
-                let statusText = first.HODStatus === 'Pending' ? 'Pending Faculty Approval' : first.HODStatus;
+                const hodStatus = String(first.HODStatus || '').trim();
+                const mgrStatus = String(first.ManagerStatus || '').trim();
 
-                if (first.ManagerStatus === 'Issued') {
+                let statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
+                let statusText = hodStatus === 'Pending' ? 'Pending Faculty Approval' : hodStatus;
+
+                if (mgrStatus === 'Issued') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Issued";
-                } else if (first.HODStatus === 'Approved') {
+                } else if (hodStatus === 'Approved') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Approved";
-                } else if (first.HODStatus === 'Rejected') {
+                } else if (hodStatus === 'Rejected') {
                     statusClass = "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200";
+                } else if (hodStatus === 'Need to Discuss') {
+                    statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
+                    statusText = "Need to Discuss";
                 }
 
-                const showUpdateSIM = first.HODStatus === 'Approved' && items.some(i => !i.SIMNo);
+                const showUpdateSIM = hodStatus === 'Approved' && items.some(i => !i.EquipmentSIMNo || String(i.EquipmentSIMNo).trim() === '');
 
                 return `
                     <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
@@ -418,7 +454,7 @@
                             <div class="flex flex-col gap-1">
                                 <span class="font-bold text-slate-900 dark:text-slate-100">ID: ${reqId}</span>
                                 <div class="text-xs text-slate-500">
-                                    ${items.map(i => `<div>• ${i.EquipmentDescription} ${i.SIMNo ? `<span class="text-emerald-500 font-bold">[SIM: ${i.SIMNo}]</span>` : ''}</div>`).join('')}
+                                    ${items.map(i => `<div>• ${i.EquipmentDescription} ${i.EquipmentSIMNo ? `<span class="text-emerald-500 font-bold">[SIM: ${i.EquipmentSIMNo}]</span>` : ''}</div>`).join('')}
                                 </div>
                             </div>
                         </td>
@@ -441,15 +477,15 @@
             }).join('');
         }
 
-        function addToCart(type) {
-            const item = inventory.find(i => i.Type === type);
+        function addToCart(description) {
+            const item = inventory.find(i => i.Description === description);
             if (item && item.AvailableQty > 0) {
                 cart.push({
                     type: item.Type,
                     description: item.Description
                 });
                 updateCartUI();
-                showToast("Added to basket", `${item.Type} added to your request.`);
+                showToast("Added to basket", `${item.Description} added to your request.`);
             }
         }
 
@@ -476,6 +512,8 @@
                     </div>
                 `).join('');
             }
+            // Re-render inventory to update checkboxes
+            renderInventory(inventory);
         }
 
         function removeFromCart(index) {

@@ -125,7 +125,7 @@ function doGet(e) {
       
       if (role === 'student' && req.StudentPRN && req.StudentPRN.toString() === prn) {
         requests.push(req);
-      } else if (role === 'hod' && req.HODStatus === 'Pending') {
+      } else if (role === 'hod' && (req.HODStatus === 'Pending' || req.HODStatus === 'Need to Discuss')) {
         requests.push(req);
       } else if (role === 'manager' && req.HODStatus === 'Approved') {
         requests.push(req);
@@ -165,7 +165,9 @@ function doGet(e) {
           prn: studentData[i][0],
           name: studentData[i][1],
           specialization: studentData[i][2],
-          semester: studentData[i][3]
+          semester: studentData[i][3],
+          email: studentData[i][4] || '',
+          mobile: studentData[i][5] || ''
         });
       }
     }
@@ -219,6 +221,10 @@ function doPost(e) {
   
   if (action === 'updateHODStatus') {
     return updateHODStatus(ss, data);
+  }
+  
+  if (action === 'updatePartialApproval') {
+    return updatePartialApproval(ss, data);
   }
   
   if (action === 'updateSIMNumbers') {
@@ -382,23 +388,44 @@ function submitRequest(ss, data) {
     });
   }
   
-  const approveUrl = `${VERCEL_URL}/hod.html?id=${requestId}&action=approve`;
-  const rejectUrl = `${VERCEL_URL}/hod.html?id=${requestId}&action=reject`;
+  const approveUrl = `${VERCEL_URL}/faculty.html?id=${requestId}&action=approve`;
+  const partialUrl = `${VERCEL_URL}/faculty.html?id=${requestId}&action=partial`;
+  const rejectUrl = `${VERCEL_URL}/faculty.html?id=${requestId}&action=reject`;
   
   const emailBody = `
-    <h3>New Equipment Request: ${requestId}</h3>
-    <p><b>Student:</b> ${data.studentName} (${data.studentPRN})</p>
-    <p><b>Purpose:</b> ${data.purpose}</p>
-    <p><b>Duration:</b> ${data.fromDate} to ${data.returnDate}</p>
-    <p><b>Equipment:</b></p>
-    <ul>
-      ${data.items.map(i => `<li>${i.description} (Qty: ${i.qty || 1})</li>`).join('')}
-    </ul>
-    <p>
-      <a href="${approveUrl}" style="background: green; color: white; padding: 10px; text-decoration: none;">Approve</a>
-      &nbsp;
-      <a href="${rejectUrl}" style="background: red; color: white; padding: 10px; text-decoration: none;">Reject</a>
-    </p>
+    <h2 style="color:#CF2E2E">Equipment Issuance Request — ${requestId}</h2>
+    <hr>
+
+    <h3>Student Details</h3>
+    <p><b>Name:</b> ${data.studentName} (${data.studentPRN})</p>
+    <p><b>Specialization:</b> ${data.specialization}</p>
+    <p><b>Mobile:</b> ${data.mobileNumber}</p>
+
+    <h3>Request Details</h3>
+    <p><b>Purpose of Issuance:</b> ${data.purpose}</p>
+    <p><b>Assignment Submission Date:</b> ${data.assignmentSubmissionDate}</p>
+    <p><b>Equipment Issue Duration:</b> ${data.fromDate} to ${data.returnDate}</p>
+
+    <h3>Equipment Requested</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%">
+      <tr style="background:#f5f5f5">
+        <th>Sr. No</th>
+        <th>Equipment</th>
+        <th>Qty Requested</th>
+      </tr>
+      ${data.items.map((item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.description}</td>
+          <td>${item.qty || 1}</td>
+        </tr>
+      `).join('')}
+    </table>
+
+    <br><br>
+    <a href="${approveUrl}" style="background:green;color:white;padding:12px 24px;text-decoration:none;margin-right:10px;border-radius:4px;">✓ Approve All</a>
+    <a href="${partialUrl}" style="background:#FF8C00;color:white;padding:12px 24px;text-decoration:none;margin-right:10px;border-radius:4px;">⚡ Partial Approval</a>
+    <a href="${rejectUrl}" style="background:#CC0000;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;">✗ Not Approved / Need to Discuss</a>
   `;
   
   MailApp.sendEmail({
@@ -446,6 +473,14 @@ function updateHODStatus(ss, data) {
       subject: `Issue Equipment - ${studentName}`,
       body: `Faculty has approved the request ${data.requestId} for ${studentName}. Please issue the following equipment: \n\n ${equipmentList.join('\n')}`
     });
+  } else if (data.status === 'Need to Discuss') {
+    if (studentEmail) {
+      MailApp.sendEmail({
+        to: studentEmail,
+        subject: 'Equipment Request - Discussion Required',
+        body: `Your request ${data.requestId} requires discussion. Please contact your faculty.`
+      });
+    }
   } else {
     if (studentEmail) {
       MailApp.sendEmail({
@@ -456,6 +491,55 @@ function updateHODStatus(ss, data) {
     }
   }
   
+  return jsonResponse({ success: true });
+}
+
+function updatePartialApproval(ss, data) {
+  const sheet = ss.getSheetByName('Requests');
+  const rows = sheet.getDataRange().getValues();
+  const settings = getSettings(ss);
+  let studentEmail = '';
+  let studentName = '';
+  let approvedItems = [];
+  let breakdown = [];
+  
+  data.decisions.forEach(decision => {
+    let lastRequestID = '';
+    for (let i = 1; i < rows.length; i++) {
+      const currentID = rows[i][0] || lastRequestID;
+      if (currentID === data.requestId && rows[i][5] === decision.description) {
+        sheet.getRange(i + 1, 12).setValue(decision.status);
+        if (rows[i][0]) {
+          studentEmail = rows[i][3];
+          studentName = rows[i][1];
+        }
+        breakdown.push(`${decision.description}: ${decision.status}`);
+        if (decision.status === 'Approved') {
+          approvedItems.push(decision.description);
+        }
+        break;
+      }
+      if (rows[i][0]) lastRequestID = rows[i][0];
+    }
+  });
+
+  if (studentEmail) {
+    MailApp.sendEmail({
+      to: studentEmail,
+      subject: `Equipment Request Partial Decision - ${data.requestId}`,
+      body: `Your request ${data.requestId} has been reviewed. Here is the breakdown of decisions:\n\n${breakdown.join('\n')}\n\nPlease contact your faculty for items marked 'Need to Discuss'.`
+    });
+  }
+
+  if (approvedItems.length > 0) {
+    const managerEmail = settings.MANAGER_EMAIL || 'atharva.gijare@simc.edu.in';
+    MailApp.sendEmail({
+      to: managerEmail,
+      subject: `Issue Equipment (Partial) - ${studentName}`,
+      body: `Faculty has partially approved the request ${data.requestId} for ${studentName}. Please issue the following approved equipment: \n\n ${approvedItems.join('\n')}`
+    });
+  }
+
   return jsonResponse({ success: true });
 }
 
