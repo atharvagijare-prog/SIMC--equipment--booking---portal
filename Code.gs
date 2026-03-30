@@ -13,7 +13,7 @@ const VERCEL_URL = 'https://simc-equipment-booking-portal.vercel.app';
  * I (8) = FromDate
  * J (9) = ReturnDate
  * K (10) = SubmittedOn
- * L (11) = HODStatus
+ * L (11) = FacultyStatus
  * M (12) = ManagerStatus
  * N (13) = Specialization
  * O (14) = AcademicYear
@@ -91,8 +91,8 @@ function doGet(e) {
         return jsonResponse({
           success: true,
           name: data[i][1],
-          specialization: data[i][2],
-          semester: data[i][3]
+          email: data[i][4] || '',
+          mobile: data[i][5] || ''
         });
       }
     }
@@ -125,9 +125,9 @@ function doGet(e) {
       
       if (role === 'student' && req.StudentPRN && req.StudentPRN.toString() === prn) {
         requests.push(req);
-      } else if (role === 'hod' && (req.HODStatus === 'Pending' || req.HODStatus === 'Need to Discuss')) {
+      } else if (role === 'faculty' && (req.FacultyStatus === 'Pending' || req.FacultyStatus === 'Need to Discuss')) {
         requests.push(req);
-      } else if (role === 'manager' && req.HODStatus === 'Approved') {
+      } else if (role === 'manager' && req.FacultyStatus === 'Approved') {
         requests.push(req);
       } else if (role === 'admin') {
         requests.push(req);
@@ -219,8 +219,8 @@ function doPost(e) {
     return submitRequest(ss, data);
   }
   
-  if (action === 'updateHODStatus') {
-    return updateHODStatus(ss, data);
+  if (action === 'updateFacultyStatus') {
+    return updateFacultyStatus(ss, data);
   }
   
   if (action === 'updatePartialApproval') {
@@ -318,7 +318,7 @@ function submitRequest(ss, data) {
     sheet.appendRow([
       'RequestID', 'StudentName', 'StudentPRN', 'StudentEmail', 'EquipmentSIMNo', 
       'EquipmentDescription', 'Quantity', 'Purpose', 'FromDate', 'ReturnDate', 
-      'SubmittedOn', 'HODStatus', 'ManagerStatus', 'Specialization', 'AcademicYear',
+      'SubmittedOn', 'FacultyStatus', 'ManagerStatus', 'Specialization', 'AcademicYear',
       'MobileNumber', 'AssignmentSubmissionDate', 'ConcernedFacultyName', 'ConcernedFacultyEmail',
       'IssuingAuthority', 'AgreementSigned', 'ReturnCondition', 'ReturnAgreementSigned'
     ]);
@@ -437,7 +437,7 @@ function submitRequest(ss, data) {
   return jsonResponse({ success: true, requestId: requestId });
 }
 
-function updateHODStatus(ss, data) {
+function updateFacultyStatus(ss, data) {
   const sheet = ss.getSheetByName('Requests');
   const rows = sheet.getDataRange().getValues();
   const settings = getSettings(ss);
@@ -759,12 +759,13 @@ function manageStudent(ss, data) {
       if (values[i][0].toString() === data.oldPrn.toString()) {
         sheet.getRange(i + 1, 1).setValue(data.prn);
         sheet.getRange(i + 1, 2).setValue(data.name);
-        sheet.getRange(i + 1, 3).setValue(data.specialization);
-        sheet.getRange(i + 1, 4).setValue(data.semester);
+        sheet.getRange(i + 1, 5).setValue(data.email);
+        sheet.getRange(i + 1, 6).setValue(data.mobile);
       }
     }
   } else {
-    sheet.appendRow([data.prn, data.name, data.specialization, data.semester]);
+    const newRow = [data.prn, data.name, '', '', data.email, data.mobile];
+    sheet.appendRow(newRow);
   }
   return jsonResponse({ success: true });
 }

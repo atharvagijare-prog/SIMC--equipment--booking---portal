@@ -188,7 +188,7 @@
 
         async function fetchRequests() {
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=hod`);
+                const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=faculty`);
                 allRequests = await res.json();
                 renderRequests(allRequests);
                 updateStats();
@@ -197,7 +197,7 @@
 
         async function fetchSingleRequest(reqId, action) {
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=hod`);
+                const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=faculty`);
                 const data = await res.json();
                 const single = data.filter(r => r.RequestID === reqId);
 
@@ -225,7 +225,7 @@
             const body = document.getElementById('requests-body');
             const issuedBody = document.getElementById('issued-body');
             
-            const pending = data.filter(r => r.HODStatus === 'Pending');
+            const pending = data.filter(r => r.FacultyStatus === 'Pending');
             const issued = data.filter(r => r.ManagerStatus === 'Issued');
 
             // Render Issued
@@ -411,7 +411,7 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'updateHODStatus',
+                        action: 'updateFacultyStatus',
                         requestId: reqId,
                         status: status
                     })
@@ -437,11 +437,11 @@
         }
 
         function openPartialModal(reqId) {
-            const items = allRequests.filter(r => r.RequestID === reqId && r.HODStatus === 'Pending');
+            const items = allRequests.filter(r => r.RequestID === reqId && r.FacultyStatus === 'Pending');
             if (items.length === 0) {
                 // If we came from a single request link, we might need to fetch again or it's already processed
                 fetchRequests().then(() => {
-                    const freshItems = allRequests.filter(r => r.RequestID === reqId && r.HODStatus === 'Pending');
+                    const freshItems = allRequests.filter(r => r.RequestID === reqId && r.FacultyStatus === 'Pending');
                     if (freshItems.length > 0) populatePartialModal(reqId, freshItems);
                 });
                 return;
@@ -530,8 +530,8 @@
                 return acc;
             }, {});
             const unique = Object.values(grouped);
-            const pending = unique.filter(r => r.HODStatus === 'Pending').length;
-            const processed = unique.filter(r => r.HODStatus !== 'Pending').length;
+            const pending = unique.filter(r => r.FacultyStatus === 'Pending').length;
+            const processed = unique.filter(r => r.FacultyStatus !== 'Pending').length;
             document.getElementById('stat-pending').innerText = String(pending).padStart(2, '0');
             document.getElementById('stat-processed').innerText = String(processed).padStart(2, '0');
         }

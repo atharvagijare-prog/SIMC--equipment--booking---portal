@@ -274,12 +274,12 @@
                         <input id="stu-name" type="text" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Specialization</label>
-                        <input id="stu-spec" type="text" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Email</label>
+                        <input id="stu-email" type="email" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Semester</label>
-                        <input id="stu-sem" type="number" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Mobile Number</label>
+                        <input id="stu-mobile" type="text" class="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 focus:ring-primary focus:border-primary text-sm p-4">
                     </div>
                 </div>
                 <div class="p-8 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700">
@@ -383,10 +383,16 @@
             let stats = [];
 
             if (tabId === 'requests') {
-                const total = allRequests.length;
-                const approved = allRequests.filter(g => g[0].HODStatus === 'Approved').length;
-                const pending = allRequests.filter(g => g[0].HODStatus === 'Pending').length;
-                const rejected = allRequests.filter(g => g[0].HODStatus === 'Rejected').length;
+                const grouped = allRequests.reduce((acc, r) => {
+                    if (!acc[r.RequestID]) acc[r.RequestID] = [];
+                    acc[r.RequestID].push(r);
+                    return acc;
+                }, {});
+                const requests = Object.values(grouped);
+                const total = requests.length;
+                const approved = requests.filter(g => g[0].FacultyStatus === 'Approved').length;
+                const pending = requests.filter(g => g[0].FacultyStatus === 'Pending').length;
+                const rejected = requests.filter(g => g[0].FacultyStatus === 'Rejected').length;
                 
                 stats = [
                     { label: 'Total Requests', value: total, icon: 'list_alt', color: 'primary' },
@@ -464,7 +470,7 @@
             body.innerHTML = groups.map(items => {
                 const req = items[0];
                 const equipmentHtml = items.map(i => `<div class="text-[10px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">• ${i.EquipmentDescription}</div>`).join('');
-                const hodStatusClass = req.HODStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-500' : (req.HODStatus === 'Rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500');
+                const facultyStatusClass = req.FacultyStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-500' : (req.FacultyStatus === 'Rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500');
                 const mgrStatusClass = req.ManagerStatus === 'Issued' ? 'bg-emerald-500/10 text-emerald-500' : (req.ManagerStatus === 'Returned' ? 'bg-slate-500/10 text-slate-500' : 'bg-amber-500/10 text-amber-500');
                 return `
                     <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
@@ -481,7 +487,7 @@
                         <td class="px-8 py-6"><div class="flex flex-col">${equipmentHtml}</div></td>
                         <td class="px-8 py-6">
                             <div class="flex flex-col gap-2">
-                                <span class="px-2 py-1 ${hodStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">Faculty Approval: ${req.HODStatus}</span>
+                                <span class="px-2 py-1 ${facultyStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">Faculty Approval: ${req.FacultyStatus}</span>
                                 <span class="px-2 py-1 ${mgrStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">MGR: ${req.ManagerStatus}</span>
                             </div>
                         </td>
@@ -590,14 +596,14 @@
                 document.getElementById('stu-modal-title').innerText = "Edit Student";
                 document.getElementById('stu-prn').value = s.prn;
                 document.getElementById('stu-name').value = s.name;
-                document.getElementById('stu-spec').value = s.specialization;
-                document.getElementById('stu-sem').value = s.semester;
+                document.getElementById('stu-email').value = s.email || '';
+                document.getElementById('stu-mobile').value = s.mobile || '';
             } else {
                 document.getElementById('stu-modal-title').innerText = "Add Student";
                 document.getElementById('stu-prn').value = '';
                 document.getElementById('stu-name').value = '';
-                document.getElementById('stu-spec').value = '';
-                document.getElementById('stu-sem').value = '';
+                document.getElementById('stu-email').value = '';
+                document.getElementById('stu-mobile').value = '';
             }
             document.getElementById('student-modal').classList.remove('hidden');
         }
@@ -605,13 +611,13 @@
         document.getElementById('save-stu-btn').onclick = async () => {
             const prn = document.getElementById('stu-prn').value;
             const name = document.getElementById('stu-name').value;
-            const spec = document.getElementById('stu-spec').value;
-            const sem = document.getElementById('stu-sem').value;
-            if (!prn || !name || !spec || !sem) return alert("Fill all fields");
+            const email = document.getElementById('stu-email').value;
+            const mobile = document.getElementById('stu-mobile').value;
+            if (!prn || !name || !email || !mobile) return alert("Fill all fields");
             try {
                 await fetch(SCRIPT_URL, {
                     method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'manageStudent', prn, name, specialization: spec, semester: sem, oldPrn: editingStuPrn })
+                    body: JSON.stringify({ action: 'manageStudent', prn, name, email, mobile, oldPrn: editingStuPrn })
                 });
                 showToast("Saved!", "Student database updated.");
                 closeStudentModal();

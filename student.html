@@ -427,26 +427,26 @@
                 const items = grouped[reqId];
                 const first = items[0];
                 
-                const hodStatus = String(first.HODStatus || '').trim();
+                const facultyStatus = String(first.FacultyStatus || '').trim();
                 const mgrStatus = String(first.ManagerStatus || '').trim();
 
                 let statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
-                let statusText = hodStatus === 'Pending' ? 'Pending Faculty Approval' : hodStatus;
+                let statusText = facultyStatus === 'Pending' ? 'Pending Faculty Approval' : facultyStatus;
 
                 if (mgrStatus === 'Issued') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Issued";
-                } else if (hodStatus === 'Approved') {
+                } else if (facultyStatus === 'Approved') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Approved";
-                } else if (hodStatus === 'Rejected') {
+                } else if (facultyStatus === 'Rejected') {
                     statusClass = "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200";
-                } else if (hodStatus === 'Need to Discuss') {
+                } else if (facultyStatus === 'Need to Discuss') {
                     statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
                     statusText = "Need to Discuss";
                 }
 
-                const showUpdateSIM = hodStatus === 'Approved' && items.some(i => !i.EquipmentSIMNo || String(i.EquipmentSIMNo).trim() === '');
+                const showUpdateSIM = facultyStatus === 'Approved' && items.some(i => !i.EquipmentSIMNo || String(i.EquipmentSIMNo).trim() === '');
 
                 return `
                     <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
@@ -523,7 +523,7 @@
 
         function updateStats() {
             const active = myRequests.filter(r => r.ManagerStatus === 'Issued').length;
-            const pending = myRequests.filter(r => r.HODStatus === 'Pending').length;
+            const pending = myRequests.filter(r => r.FacultyStatus === 'Pending').length;
             const returned = myRequests.filter(r => r.ManagerStatus === 'Returned').length;
 
             document.getElementById('stat-active').innerText = String(active).padStart(2, '0');

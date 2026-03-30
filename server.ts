@@ -78,10 +78,10 @@ async function startServer() {
 
       if (role === 'student') {
         filtered = filtered.filter(r => String(r.StudentPRN) === String(prn));
-      } else if (role === 'hod') {
-        filtered = filtered.filter(r => r.HODStatus === 'Pending');
+      } else if (role === 'faculty') {
+        filtered = filtered.filter(r => r.FacultyStatus === 'Pending');
       } else if (role === 'manager') {
-        filtered = filtered.filter(r => r.HODStatus === 'Approved' && r.ManagerStatus !== 'Returned');
+        filtered = filtered.filter(r => r.FacultyStatus === 'Approved' && r.ManagerStatus !== 'Returned');
       }
       return res.json(filtered);
     }
@@ -108,13 +108,13 @@ async function startServer() {
         FromDate: data.fromDate,
         ReturnDate: data.returnDate,
         SubmittedOn: new Date().toISOString(),
-        HODStatus: "Pending",
+        FacultyStatus: "Pending",
         ManagerStatus: "Pending"
       };
       db.requests.push(newRequest);
       writeDB(db);
 
-      // Mock HOD Email
+      // Mock Faculty Email
       mockSendEmail(
         "atharvagijare111@gmail.com",
         `Equipment Request Approval — ${data.studentName}`,
@@ -126,16 +126,16 @@ async function startServer() {
       return res.json({ success: true, requestId });
     }
 
-    if (action === 'updateHODStatus') {
+    if (action === 'updateFacultyStatus') {
       const reqIdx = db.requests.findIndex(r => r.RequestID === data.requestId);
       if (reqIdx !== -1) {
         const request = db.requests[reqIdx];
-        request.HODStatus = data.status;
+        request.FacultyStatus = data.status;
         writeDB(db);
 
         if (data.status === "Approved") {
           mockSendEmail(request.StudentEmail, "Your Equipment Request has been Approved", `Dear ${request.StudentName}, your request for ${request.EquipmentDescription} has been approved.`);
-          mockSendEmail("atharva.gijare@simc.edu.in", `Action Required — Issue Equipment to ${request.StudentName}`, `HOD approved ${request.StudentName}'s request.`);
+          mockSendEmail("atharva.gijare@simc.edu.in", `Action Required — Issue Equipment to ${request.StudentName}`, `Faculty approved ${request.StudentName}'s request.`);
         } else if (data.status === "Rejected") {
           mockSendEmail(request.StudentEmail, "Your Equipment Request has been Rejected", `Dear ${request.StudentName}, your request for ${request.EquipmentDescription} has been rejected.`);
         }
