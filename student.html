@@ -427,26 +427,32 @@
                 const items = grouped[reqId];
                 const first = items[0];
                 
-                const facultyStatus = String(first.FacultyStatus || '').trim();
-                const mgrStatus = String(first.ManagerStatus || '').trim();
+                const hasApprovedItems = items.some(i => i.FacultyStatus === 'Approved');
+                const allApproved = items.every(i => i.FacultyStatus === 'Approved');
+                const hasRejected = items.some(i => i.FacultyStatus === 'Rejected');
+                const hasNeedToDiscuss = items.some(i => i.FacultyStatus === 'Need to Discuss');
 
                 let statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
-                let statusText = facultyStatus === 'Pending' ? 'Pending Faculty Approval' : facultyStatus;
+                let statusText = "Pending Faculty Approval";
 
                 if (mgrStatus === 'Issued') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Issued";
-                } else if (facultyStatus === 'Approved') {
+                } else if (allApproved) {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Approved";
-                } else if (facultyStatus === 'Rejected') {
+                } else if (hasApprovedItems) {
+                    statusClass = "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200";
+                    statusText = "Partially Approved";
+                } else if (hasRejected) {
                     statusClass = "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200";
-                } else if (facultyStatus === 'Need to Discuss') {
+                    statusText = "Rejected";
+                } else if (hasNeedToDiscuss) {
                     statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
                     statusText = "Need to Discuss";
                 }
 
-                const showUpdateSIM = facultyStatus === 'Approved' && items.some(i => !i.EquipmentSIMNo || String(i.EquipmentSIMNo).trim() === '');
+                const showUpdateSIM = items.some(i => i.FacultyStatus === 'Approved' && (!i.EquipmentSIMNo || String(i.EquipmentSIMNo).trim() === ''));
 
                 return `
                     <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
@@ -604,7 +610,9 @@
             const reqItems = myRequests.filter(r => 
                 r.RequestID === reqId && 
                 r.EquipmentDescription && 
-                r.EquipmentDescription !== "undefined"
+                r.EquipmentDescription !== "undefined" &&
+                r.FacultyStatus === 'Approved' &&
+                (!r.EquipmentSIMNo || String(r.EquipmentSIMNo).trim() === '')
             );
             
             const modalHtml = `

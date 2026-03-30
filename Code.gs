@@ -832,9 +832,13 @@ function getAvailableSIMs(ss, description) {
     const simIdx = 4; 
     const descIdx = 5; 
     const statusIdx = 12; 
+    const facultyStatusIdx = 11;
     for (let i = 0; i < rows.length; i++) {
-      if (rows[i][descIdx] === description && rows[i][statusIdx] === 'Issued') {
-        if (rows[i][simIdx]) issuedSIMs.add(rows[i][simIdx].toString());
+      const simNo = rows[i][simIdx];
+      const mStatus = rows[i][statusIdx];
+      const fStatus = rows[i][facultyStatusIdx];
+      if (simNo && mStatus !== 'Returned' && fStatus !== 'Rejected') {
+        issuedSIMs.add(simNo.toString());
       }
     }
   }

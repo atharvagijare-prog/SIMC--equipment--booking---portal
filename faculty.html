@@ -225,7 +225,7 @@
             const body = document.getElementById('requests-body');
             const issuedBody = document.getElementById('issued-body');
             
-            const pending = data.filter(r => r.FacultyStatus === 'Pending');
+            const pending = data.filter(r => r.FacultyStatus === 'Pending' || r.FacultyStatus === 'Need to Discuss');
             const issued = data.filter(r => r.ManagerStatus === 'Issued');
 
             // Render Issued
@@ -437,7 +437,7 @@
         }
 
         function openPartialModal(reqId) {
-            const items = allRequests.filter(r => r.RequestID === reqId && r.FacultyStatus === 'Pending');
+            const items = allRequests.filter(r => r.RequestID === reqId && (r.FacultyStatus === 'Pending' || r.FacultyStatus === 'Need to Discuss'));
             if (items.length === 0) {
                 // If we came from a single request link, we might need to fetch again or it's already processed
                 fetchRequests().then(() => {
