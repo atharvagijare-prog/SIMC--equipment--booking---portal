@@ -464,19 +464,19 @@
         function renderRequests(groups) {
             const body = document.getElementById('admin-requests-body');
             if (groups.length === 0) {
-                body.innerHTML = `<tr><td colspan="4" class="px-8 py-10 text-center text-slate-400">No requests found.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="5" class="px-8 py-10 text-center text-slate-400">No requests found.</td></tr>`;
                 return;
             }
             body.innerHTML = groups.map(items => {
                 const req = items[0];
-                const equipmentHtml = items.map(i => `<div class="text-[10px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">• ${i.EquipmentDescription}</div>`).join('');
+                const equipmentHtml = items.map(i => `<div class="text-[10px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">• ${i.EquipmentDescription} (${i.Quantity})</div>`).join('');
                 const facultyStatusClass = req.FacultyStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-500' : (req.FacultyStatus === 'Rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500');
                 const mgrStatusClass = req.ManagerStatus === 'Issued' ? 'bg-emerald-500/10 text-emerald-500' : (req.ManagerStatus === 'Returned' ? 'bg-slate-500/10 text-slate-500' : 'bg-amber-500/10 text-amber-500');
                 return `
                     <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
                         <td class="px-8 py-6">
                             <span class="font-black text-slate-900 dark:text-white text-sm tracking-tight">${req.RequestID}</span>
-                            <span class="block text-[9px] text-slate-400 font-medium mt-1">${formatDate(req.RequestDate)}</span>
+                            <span class="block text-[9px] text-slate-400 font-medium mt-1">${formatDate(req.SubmittedOn || req.RequestDate)}</span>
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex flex-col">
@@ -487,15 +487,30 @@
                         <td class="px-8 py-6"><div class="flex flex-col">${equipmentHtml}</div></td>
                         <td class="px-8 py-6">
                             <div class="flex flex-col gap-2">
-                                <span class="px-2 py-1 ${facultyStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">Faculty Approval: ${req.FacultyStatus}</span>
-                                <span class="px-2 py-1 ${mgrStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">MGR: ${req.ManagerStatus}</span>
+                                <span class="px-2 py-1 ${facultyStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">Faculty: ${req.FacultyStatus}</span>
+                                <span class="px-2 py-1 ${mgrStatusClass} text-[9px] font-black rounded-lg border border-current/20 w-fit">Manager: ${req.ManagerStatus}</span>
                             </div>
                         </td>
                         <td class="px-8 py-6 text-right">
+                            <button onclick="deleteRequest('${req.RequestID}')" class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        async function deleteRequest(requestId) {
+            if (!confirm(`Are you sure you want to delete request ${requestId}? This will remove all items in this request.`)) return;
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: 'deleteRequest', requestId })
+                });
+                showToast("Deleted!", "Request removed from database.");
+                setTimeout(fetchAllData, 1500);
+            } catch (e) { console.error(e); }
         }
 
         function renderInventory(data) {
@@ -514,10 +529,23 @@
                         <td class="px-8 py-6 text-right">
                             <div class="flex justify-end gap-2">
                                 <button onclick="openInventoryModal('${item.Description}')" class="p-2 text-slate-400 hover:text-primary"><span class="material-symbols-outlined">edit</span></button>
+                                <button onclick="deleteInventory('${item.Description}')" class="p-2 text-slate-400 hover:text-rose-500"><span class="material-symbols-outlined">delete</span></button>
                             </div>
                         </td>
                 </tr>
             `).join('');
+        }
+
+        async function deleteInventory(description) {
+            if (!confirm(`Are you sure you want to delete ${description}?`)) return;
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: 'manageInventory', delete: true, description })
+                });
+                showToast("Deleted!", "Item removed from inventory.");
+                setTimeout(fetchAllData, 1500);
+            } catch (e) { console.error(e); }
         }
 
         function renderStudents(students) {
@@ -531,10 +559,23 @@
                     <td class="px-8 py-6 text-right">
                         <div class="flex justify-end gap-2">
                             <button onclick="openStudentModal('${s.prn}')" class="p-2 text-slate-400 hover:text-primary"><span class="material-symbols-outlined">edit</span></button>
+                            <button onclick="deleteStudent('${s.prn}')" class="p-2 text-slate-400 hover:text-rose-500"><span class="material-symbols-outlined">delete</span></button>
                         </div>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        async function deleteStudent(prn) {
+            if (!confirm(`Are you sure you want to delete student with PRN ${prn}?`)) return;
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: 'manageStudent', delete: true, prn })
+                });
+                showToast("Deleted!", "Student removed from database.");
+                setTimeout(fetchAllData, 1500);
+            } catch (e) { console.error(e); }
         }
 
         function renderFaculty(faculty) {
@@ -546,10 +587,23 @@
                     <td class="px-8 py-6 text-right">
                         <div class="flex justify-end gap-2">
                             <button onclick="openFacultyModal('${f.email}')" class="p-2 text-slate-400 hover:text-primary"><span class="material-symbols-outlined">edit</span></button>
+                            <button onclick="deleteFaculty('${f.email}')" class="p-2 text-slate-400 hover:text-rose-500"><span class="material-symbols-outlined">delete</span></button>
                         </div>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        async function deleteFaculty(email) {
+            if (!confirm(`Are you sure you want to delete faculty with email ${email}?`)) return;
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: 'manageFaculty', delete: true, email })
+                });
+                showToast("Deleted!", "Faculty removed from database.");
+                setTimeout(fetchAllData, 1500);
+            } catch (e) { console.error(e); }
         }
 
         // Inventory Modal Logic

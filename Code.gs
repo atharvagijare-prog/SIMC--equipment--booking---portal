@@ -1,4 +1,4 @@
-const VERCEL_URL = 'https://simc-equipment-booking-portal.vercel.app';
+const VERCEL_URL = 'https://ais-dev-bn2ldncnfht3zuopoew4uo-207679608621.asia-east1.run.app';
 
 /**
  * ACTUAL COLUMN STRUCTURE (Requests Sheet):
@@ -58,9 +58,10 @@ function getRequestsData(ss) {
   
   for (let i = 1; i < data.length; i++) {
     let row = [...data[i]];
-    if (!row[0]) { // If RequestID is empty (merged cell)
+    // If RequestID is empty, it's likely a merged cell from the row above
+    if (!row[0] || row[0].toString().trim() === "") { 
       if (lastRowData) {
-        // Copy common values: A, B, C, D, H, I, J, L, N, O, P, Q, R, S, U
+        // Copy common values: RequestID, StudentName, StudentPRN, StudentEmail, Purpose, FromDate, ReturnDate, FacultyStatus, etc.
         [0, 1, 2, 3, 7, 8, 9, 11, 13, 14, 15, 16, 17, 18, 20].forEach(idx => {
           row[idx] = lastRowData[idx];
         });
@@ -118,16 +119,25 @@ function doGet(e) {
     const rows = reqInfo.rows;
     let requests = [];
     
+    // Indices based on the structure defined at the top of the file
+    const PRN_IDX = 2;
+    const FACULTY_STATUS_IDX = 11;
+    const MANAGER_STATUS_IDX = 12;
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const req = {};
-      headers.forEach((h, idx) => req[h] = row[idx]);
+      headers.forEach((h, idx) => req[h.toString().trim()] = row[idx]);
       
-      if (role === 'student' && req.StudentPRN && req.StudentPRN.toString() === prn) {
+      const facultyStatus = (row[FACULTY_STATUS_IDX] || '').toString().trim();
+      const managerStatus = (row[MANAGER_STATUS_IDX] || '').toString().trim();
+      const studentPrn = (row[PRN_IDX] || '').toString().trim();
+
+      if (role === 'student' && studentPrn === (prn || '').toString().trim()) {
         requests.push(req);
-      } else if (role === 'faculty' && (req.FacultyStatus === 'Pending' || req.FacultyStatus === 'Need to Discuss')) {
+      } else if (role === 'faculty' && (facultyStatus === 'Pending' || facultyStatus === 'Need to Discuss')) {
         requests.push(req);
-      } else if (role === 'manager' && req.FacultyStatus === 'Approved') {
+      } else if (role === 'manager' && facultyStatus === 'Approved') {
         requests.push(req);
       } else if (role === 'admin') {
         requests.push(req);
@@ -137,16 +147,30 @@ function doGet(e) {
   }
   
   if (action === 'getRequestById') {
-    const id = e.parameter.id;
+    const id = (e.parameter.id || '').toString().trim();
     const reqInfo = getRequestsData(ss);
     const headers = reqInfo.headers;
     const rows = reqInfo.rows;
     let results = [];
     for (let i = 0; i < rows.length; i++) {
-      if (rows[i][0] === id) {
+      if (rows[i][0] && rows[i][0].toString().trim() === id) {
         const req = {};
-        headers.forEach((h, idx) => req[h] = rows[i][idx]);
+        headers.forEach((h, idx) => req[h.toString().trim()] = rows[i][idx]);
         results.push(req);
+      } else if (!rows[i][0]) {
+        // Handle merged rows
+        let lastId = '';
+        for(let j=i; j>=0; j--) {
+          if(rows[j][0]) {
+            lastId = rows[j][0].toString().trim();
+            break;
+          }
+        }
+        if(lastId === id) {
+          const req = {};
+          headers.forEach((h, idx) => req[h.toString().trim()] = rows[i][idx]);
+          results.push(req);
+        }
       }
     }
     return jsonResponse(results);
@@ -256,8 +280,27 @@ function doPost(e) {
     if (sheet) {
       const dataRange = sheet.getDataRange();
       const values = dataRange.getValues();
+      const targetId = (data.requestId || '').toString().trim();
+      let lastId = '';
       for (let i = values.length - 1; i >= 1; i--) {
-        if (values[i][0] === data.requestId) {
+        const currentId = (values[i][0] || '').toString().trim() || lastId;
+        if (currentId === targetId) {
+          sheet.deleteRow(i + 1);
+        }
+        // Update lastId for the next iteration (going upwards)
+        // Actually, when going upwards, we need to find the ID of the merge group.
+        // If values[i][0] is empty, it belongs to the ID above it.
+        // So we should find the ID by looking UP from the current row.
+        let rowId = values[i][0] ? values[i][0].toString().trim() : '';
+        if (!rowId) {
+          for (let j = i - 1; j >= 1; j--) {
+            if (values[j][0]) {
+              rowId = values[j][0].toString().trim();
+              break;
+            }
+          }
+        }
+        if (rowId === targetId) {
           sheet.deleteRow(i + 1);
         }
       }
@@ -546,27 +589,30 @@ function updatePartialApproval(ss, data) {
 function updateSIMNumbers(ss, data) {
   const sheet = ss.getSheetByName('Requests');
   const rows = sheet.getDataRange().getValues();
+  const targetId = (data.requestId || '').toString().trim();
   
   data.updates.forEach(update => {
     let lastRequestID = '';
+    const targetDesc = (update.description || '').toString().trim();
     for (let i = 1; i < rows.length; i++) {
-      const currentID = rows[i][0] || lastRequestID;
-      if (currentID === data.requestId && rows[i][5] === update.description) {
+      const currentID = (rows[i][0] || '').toString().trim() || lastRequestID;
+      const currentDesc = (rows[i][5] || '').toString().trim();
+      if (currentID === targetId && currentDesc === targetDesc) {
         sheet.getRange(i + 1, 5).setValue(update.simNo); 
         break;
       }
-      if (rows[i][0]) lastRequestID = rows[i][0];
+      if (rows[i][0]) lastRequestID = rows[i][0].toString().trim();
     }
   });
 
   if (data.agreementSigned) {
     let lastRequestID = '';
     for (let i = 1; i < rows.length; i++) {
-      const currentID = rows[i][0] || lastRequestID;
-      if (currentID === data.requestId) {
+      const currentID = (rows[i][0] || '').toString().trim() || lastRequestID;
+      if (currentID === targetId) {
         sheet.getRange(i + 1, 21).setValue('Yes'); 
       }
-      if (rows[i][0]) lastRequestID = rows[i][0];
+      if (rows[i][0]) lastRequestID = rows[i][0].toString().trim();
     }
   }
   
@@ -724,14 +770,16 @@ function manageInventory(ss, data) {
   const values = sheet.getDataRange().getValues();
   
   if (data.delete) {
+    const targetDesc = (data.description || '').toString().trim();
     for (let i = values.length - 1; i >= 1; i--) {
-      if (values[i][3] === data.description) {
+      if (values[i][3].toString().trim() === targetDesc) {
         sheet.deleteRow(i + 1);
       }
     }
   } else if (data.oldDescription) {
+    const targetOldDesc = (data.oldDescription || '').toString().trim();
     for (let i = 1; i < values.length; i++) {
-      if (values[i][3] === data.oldDescription) {
+      if (values[i][3].toString().trim() === targetOldDesc) {
         sheet.getRange(i + 1, 3).setValue(data.type);
         sheet.getRange(i + 1, 4).setValue(data.description);
         sheet.getRange(i + 1, 5).setValue(data.totalQty);
@@ -749,14 +797,16 @@ function manageStudent(ss, data) {
   const values = sheet.getDataRange().getValues();
   
   if (data.delete) {
+    const targetPrn = (data.prn || '').toString().trim();
     for (let i = values.length - 1; i >= 1; i--) {
-      if (values[i][0].toString() === data.prn.toString()) {
+      if (values[i][0].toString().trim() === targetPrn) {
         sheet.deleteRow(i + 1);
       }
     }
   } else if (data.oldPrn) {
+    const targetOldPrn = (data.oldPrn || '').toString().trim();
     for (let i = 1; i < values.length; i++) {
-      if (values[i][0].toString() === data.oldPrn.toString()) {
+      if (values[i][0].toString().trim() === targetOldPrn) {
         sheet.getRange(i + 1, 1).setValue(data.prn);
         sheet.getRange(i + 1, 2).setValue(data.name);
         sheet.getRange(i + 1, 5).setValue(data.email);
@@ -776,14 +826,16 @@ function manageFaculty(ss, data) {
   const values = sheet.getDataRange().getValues();
   
   if (data.delete) {
+    const targetEmail = (data.email || '').toString().trim();
     for (let i = values.length - 1; i >= 1; i--) {
-      if (values[i][1] === data.email) {
+      if (values[i][1].toString().trim() === targetEmail) {
         sheet.deleteRow(i + 1);
       }
     }
   } else if (data.oldEmail) {
+    const targetOldEmail = (data.oldEmail || '').toString().trim();
     for (let i = 1; i < values.length; i++) {
-      if (values[i][1] === data.oldEmail) {
+      if (values[i][1].toString().trim() === targetOldEmail) {
         sheet.getRange(i + 1, 1).setValue(data.name);
         sheet.getRange(i + 1, 2).setValue(data.email);
       }
