@@ -81,25 +81,37 @@ function getRequestsData(ss) {
   
   const headers = data[0];
   const processedRows = [];
-  let lastRowData = null;
+  let lastValidRow = null;
   
+  // Columns that are common to the whole request and should be filled down if empty
+  const commonIndices = [
+    COL_RETURN_DATE, COL_SUBMITTED_ON, COL_FACULTY_STATUS, COL_MANAGER_STATUS,
+    COL_SPECIALIZATION, COL_ACADEMIC_YEAR, COL_MOBILE_NUMBER, COL_ASSIGNMENT_DATE,
+    COL_FACULTY_NAME, COL_FACULTY_EMAIL, COL_REQUEST_ID, COL_STUDENT_NAME,
+    COL_STUDENT_PRN, COL_STUDENT_EMAIL, COL_PURPOSE, COL_FROM_DATE, COL_AGREEMENT_SIGNED,
+    COL_RETURN_AGREEMENT, COL_ISSUING_AUTHORITY, COL_RETURN_CONDITION, COL_NOTES_MANAGER
+  ];
+
   for (let i = 1; i < data.length; i++) {
     let row = [...data[i]];
-    // If RequestID is empty, it's likely a merged cell from the row above
-    if (!row[COL_REQUEST_ID] || row[COL_REQUEST_ID].toString().trim() === "") { 
-      if (lastRowData) {
-        // Copy common values
-        [
-          COL_RETURN_DATE, COL_SUBMITTED_ON, COL_FACULTY_STATUS, COL_MANAGER_STATUS,
-          COL_SPECIALIZATION, COL_ACADEMIC_YEAR, COL_MOBILE_NUMBER, COL_ASSIGNMENT_DATE,
-          COL_FACULTY_NAME, COL_FACULTY_EMAIL, COL_REQUEST_ID, COL_STUDENT_NAME,
-          COL_STUDENT_PRN, COL_STUDENT_EMAIL, COL_PURPOSE, COL_FROM_DATE, COL_AGREEMENT_SIGNED
-        ].forEach(idx => {
-          row[idx] = lastRowData[idx];
+    const requestId = (row[COL_REQUEST_ID] || '').toString().trim();
+    const equipment = (row[COL_EQUIPMENT_DESC] || '').toString().trim();
+    
+    // Skip completely empty rows
+    if (requestId === "" && equipment === "") continue;
+
+    if (requestId === "") {
+      if (lastValidRow) {
+        // This is a merged row (continuation of previous request)
+        commonIndices.forEach(idx => {
+          if (row[idx] === "" || row[idx] === null || row[idx] === undefined) {
+            row[idx] = lastValidRow[idx];
+          }
         });
       }
     } else {
-      lastRowData = [...row];
+      // This is a new request row
+      lastValidRow = [...row];
     }
     processedRows.push(row);
   }
@@ -183,15 +195,15 @@ function doGet(e) {
         ReturnAgreementSigned: row[COL_RETURN_AGREEMENT]
       };
       
-      const facultyStatus = (row[COL_FACULTY_STATUS] || '').toString().trim();
-      const managerStatus = (row[COL_MANAGER_STATUS] || '').toString().trim();
+      const facultyStatus = (row[COL_FACULTY_STATUS] || '').toString().trim().toLowerCase();
+      const managerStatus = (row[COL_MANAGER_STATUS] || '').toString().trim().toLowerCase();
       const studentPrn = (row[COL_STUDENT_PRN] || '').toString().trim();
 
       if (role === 'student' && studentPrn === (prn || '').toString().trim()) {
         requests.push(req);
-      } else if (role === 'faculty' && (facultyStatus === 'Pending' || facultyStatus === 'Need to Discuss')) {
+      } else if (role === 'faculty' && (facultyStatus === 'pending' || facultyStatus === 'need to discuss')) {
         requests.push(req);
-      } else if (role === 'manager' && facultyStatus === 'Approved') {
+      } else if (role === 'manager' && facultyStatus === 'approved') {
         requests.push(req);
       } else if (role === 'admin') {
         requests.push(req);
@@ -597,8 +609,8 @@ function updateFacultyStatus(ss, data) {
   
   let lastRequestID = '';
   for (let i = 1; i < rows.length; i++) {
-    const currentID = rows[i][COL_REQUEST_ID] || lastRequestID;
-    if (currentID === data.requestId) {
+    const currentID = (rows[i][COL_REQUEST_ID] || lastRequestID || '').toString().trim();
+    if (currentID === (data.requestId || '').toString().trim()) {
       sheet.getRange(i + 1, COL_FACULTY_STATUS + 1).setValue(data.status); 
       if (rows[i][COL_REQUEST_ID]) { 
         studentEmail = rows[i][COL_STUDENT_EMAIL];
@@ -656,8 +668,8 @@ function updatePartialApproval(ss, data) {
   data.decisions.forEach(decision => {
     let lastRequestID = '';
     for (let i = 1; i < rows.length; i++) {
-      const currentID = rows[i][COL_REQUEST_ID] || lastRequestID;
-      if (currentID === data.requestId && rows[i][COL_EQUIPMENT_DESC] === decision.description) {
+      const currentID = (rows[i][COL_REQUEST_ID] || lastRequestID || '').toString().trim();
+      if (currentID === (data.requestId || '').toString().trim() && rows[i][COL_EQUIPMENT_DESC] === decision.description) {
         sheet.getRange(i + 1, COL_FACULTY_STATUS + 1).setValue(decision.status);
         if (rows[i][COL_REQUEST_ID]) {
           studentEmail = rows[i][COL_STUDENT_EMAIL];
@@ -737,8 +749,8 @@ function updateManagerStatus(ss, data) {
   let targetRowIndex = -1;
   
   for (let i = 1; i < reqRows.length; i++) {
-    const currentID = reqRows[i][COL_REQUEST_ID] || lastRequestID;
-    if (currentID === data.requestId && reqRows[i][COL_EQUIPMENT_DESC] === data.equipmentDescription) {
+    const currentID = (reqRows[i][COL_REQUEST_ID] || lastRequestID || '').toString().trim();
+    if (currentID === (data.requestId || '').toString().trim() && reqRows[i][COL_EQUIPMENT_DESC] === data.equipmentDescription) {
       targetRowIndex = i + 1;
       reqSheet.getRange(targetRowIndex, COL_MANAGER_STATUS + 1).setValue(data.status); 
       

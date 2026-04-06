@@ -505,7 +505,7 @@
             if (!confirm(`Are you sure you want to delete request ${requestId}? This will remove all items in this request.`)) return;
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
+                    method: 'POST',
                     body: JSON.stringify({ action: 'deleteRequest', requestId })
                 });
                 showToast("Deleted!", "Request removed from database.");
@@ -540,7 +540,7 @@
             if (!confirm(`Are you sure you want to delete ${description}?`)) return;
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
+                    method: 'POST',
                     body: JSON.stringify({ action: 'manageInventory', delete: true, description })
                 });
                 showToast("Deleted!", "Item removed from inventory.");
@@ -570,7 +570,7 @@
             if (!confirm(`Are you sure you want to delete student with PRN ${prn}?`)) return;
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
+                    method: 'POST',
                     body: JSON.stringify({ action: 'manageStudent', delete: true, prn })
                 });
                 showToast("Deleted!", "Student removed from database.");
@@ -598,7 +598,7 @@
             if (!confirm(`Are you sure you want to delete faculty with email ${email}?`)) return;
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
+                    method: 'POST',
                     body: JSON.stringify({ action: 'manageFaculty', delete: true, email })
                 });
                 showToast("Deleted!", "Faculty removed from database.");
@@ -632,7 +632,7 @@
             if (!type || !desc || !qty) return alert("Fill all fields");
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'manageInventory', type, description: desc, totalQty: qty, oldDescription: editingInvDesc })
                 });
                 showToast("Saved!", "Inventory updated.");
@@ -670,7 +670,7 @@
             if (!prn || !name || !email || !mobile) return alert("Fill all fields");
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'manageStudent', prn, name, email, mobile, oldPrn: editingStuPrn })
                 });
                 showToast("Saved!", "Student database updated.");
@@ -702,7 +702,7 @@
             if (!name || !email) return alert("Fill all fields");
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'manageFaculty', name, email, oldEmail: editingFacEmail })
                 });
                 showToast("Saved!", "Faculty database updated.");
@@ -717,7 +717,7 @@
             if (!managerEmail || !fine) return alert("Fill all fields.");
             try {
                 fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'updateSettings', managerEmail, finePerDay: fine })
                 });
                 showToast("Settings Saved!", "System settings updated.");

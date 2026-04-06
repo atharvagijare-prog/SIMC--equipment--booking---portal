@@ -188,11 +188,16 @@
 
         async function fetchRequests() {
             try {
+                console.log('Fetching requests for faculty...');
                 const res = await fetch(`${SCRIPT_URL}?action=getRequests&role=faculty`);
+                if (!res.ok) throw new Error('Network response was not ok');
                 allRequests = await res.json();
+                console.log('Fetched requests:', allRequests);
                 renderRequests(allRequests);
                 updateStats();
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error('Error fetching requests:', e); 
+            }
         }
 
         async function fetchSingleRequest(reqId, action) {
@@ -222,6 +227,7 @@
         }
 
         function renderRequests(data) {
+            console.log('Rendering requests:', data);
             const body = document.getElementById('requests-body');
             const issuedBody = document.getElementById('issued-body');
             
@@ -411,7 +417,6 @@
             try {
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'updateFacultyStatus',
@@ -533,8 +538,8 @@
                 return acc;
             }, {});
             const unique = Object.values(grouped);
-            const pending = unique.filter(r => r.FacultyStatus === 'Pending').length;
-            const processed = unique.filter(r => r.FacultyStatus !== 'Pending').length;
+            const pending = unique.filter(r => (r.FacultyStatus || '').toString().trim().toLowerCase() === 'pending').length;
+            const processed = unique.filter(r => (r.FacultyStatus || '').toString().trim().toLowerCase() !== 'pending').length;
             document.getElementById('stat-pending').innerText = String(pending).padStart(2, '0');
             document.getElementById('stat-processed').innerText = String(processed).padStart(2, '0');
         }
