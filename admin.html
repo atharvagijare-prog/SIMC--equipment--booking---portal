@@ -332,7 +332,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzpsN0h4CvNRUAeE5lw0DiFoYRmw662lnA_l-SYAHx0HH_lD8iQf8dDNr8bvkWTKnyDVg/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbT7hT1mUPessTv-PH4Z7j-7X6u3dTHPcLUCaaJdM3LLVB-dUuHRZA9hQ89wFWoewfAQ/exec';
         let currentTab = 'requests';
         let allRequests = [];
         let allStudents = [];
@@ -632,7 +632,7 @@
             if (!type || !desc || !qty) return alert("Fill all fields");
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
                     body: JSON.stringify({ action: 'manageInventory', type, description: desc, totalQty: qty, oldDescription: editingInvDesc })
                 });
                 showToast("Saved!", "Inventory updated.");
@@ -670,7 +670,7 @@
             if (!prn || !name || !email || !mobile) return alert("Fill all fields");
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
                     body: JSON.stringify({ action: 'manageStudent', prn, name, email, mobile, oldPrn: editingStuPrn })
                 });
                 showToast("Saved!", "Student database updated.");
@@ -702,7 +702,7 @@
             if (!name || !email) return alert("Fill all fields");
             try {
                 await fetch(SCRIPT_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
                     body: JSON.stringify({ action: 'manageFaculty', name, email, oldEmail: editingFacEmail })
                 });
                 showToast("Saved!", "Faculty database updated.");
@@ -717,7 +717,7 @@
             if (!managerEmail || !fine) return alert("Fill all fields.");
             try {
                 fetch(SCRIPT_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
                     body: JSON.stringify({ action: 'updateSettings', managerEmail, finePerDay: fine })
                 });
                 showToast("Settings Saved!", "System settings updated.");

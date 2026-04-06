@@ -464,6 +464,7 @@ function getInventoryData(ss) {
 }
 
 function submitRequest(ss, data) {
+try {
   let sheet = ss.getSheetByName('Requests');
   if (!sheet) {
     sheet = ss.insertSheet('Requests');
@@ -590,13 +591,27 @@ function submitRequest(ss, data) {
     <a href="${rejectUrl}" style="background:#CC0000;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;">✗ Not Approved / Need to Discuss</a>
   `;
   
-  MailApp.sendEmail({
-    to: data.concernedFacultyEmail,
-    subject: `New Equipment Request - ${data.studentName}`,
-    htmlBody: emailBody
-  });
+  try {
+    MailApp.sendEmail({
+      to: data.concernedFacultyEmail,
+      subject: `New Equipment Request - ${data.studentName}`,
+      htmlBody: emailBody
+    });
+  } catch (e) {
+    console.error('Email failed to send:', e);
+    // We still return success: true because the request is saved in the sheet
+    return jsonResponse({ 
+      success: true, 
+      requestId: requestId, 
+      warning: 'Request saved, but email notification failed to send.' 
+    });
+  }
   
   return jsonResponse({ success: true, requestId: requestId });
+} catch (error) {
+  console.error('Error in submitRequest:', error);
+  return jsonResponse({ success: false, error: error.toString() });
+}
 }
 
 function updateFacultyStatus(ss, data) {
