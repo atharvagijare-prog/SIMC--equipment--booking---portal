@@ -764,80 +764,93 @@ function updateManagerStatus(ss, data) {
   const reqRows = reqSheet.getDataRange().getValues();
   const eqSheet = ss.getSheetByName('Eq_Data_Base');
   if (!eqSheet) return jsonResponse({ success: false, error: 'Inventory sheet not found' });
-  const eqData = eqSheet.getDataRange().getValues();
   
-  let lastRequestID = '';
   let targetRowIndex = -1;
-  
+  const targetRequestId = (data.requestId || '').toString().trim();
+  const targetDescription = (data.equipmentDescription || '').toString().trim();
+  const targetSim = (data.simNo || '').toString().trim();
+
+  let lastRequestID = '';
   for (let i = 1; i < reqRows.length; i++) {
     const currentID = (reqRows[i][COL_REQUEST_ID] || lastRequestID || '').toString().trim();
-    if (currentID === (data.requestId || '').toString().trim() && reqRows[i][COL_EQUIPMENT_DESC] === data.equipmentDescription) {
+    const currentDesc = (reqRows[i][COL_EQUIPMENT_DESC] || '').toString().trim();
+    const currentSim = (reqRows[i][COL_SIM_NO] || '').toString().trim();
+
+    // Match criteria: Request ID AND Description
+    // If SIM number is provided, match that too to distinguish identical items in same request
+    const idMatch = currentID === targetRequestId;
+    const descMatch = currentDesc === targetDescription;
+    const simMatch = targetSim ? (currentSim === targetSim) : true;
+
+    if (idMatch && descMatch && simMatch) {
       targetRowIndex = i + 1;
       reqSheet.getRange(targetRowIndex, COL_MANAGER_STATUS + 1).setValue(data.status); 
       
       if (data.status === 'Issued') {
-        reqSheet.getRange(targetRowIndex, COL_ISSUING_AUTHORITY + 1).setValue(data.issuingAuthority); 
+        reqSheet.getRange(targetRowIndex, COL_ISSUING_AUTHORITY + 1).setValue(data.issuingAuthority || ''); 
       } else if (data.status === 'Returned') {
-        reqSheet.getRange(targetRowIndex, COL_RETURN_CONDITION + 1).setValue(data.returnCondition); 
+        reqSheet.getRange(targetRowIndex, COL_RETURN_CONDITION + 1).setValue(data.returnCondition || ''); 
         if (data.returnAgreementSigned) {
           reqSheet.getRange(targetRowIndex, COL_RETURN_AGREEMENT + 1).setValue('Yes'); 
         }
       }
+      break; // Found the specific row, stop
     }
-    if (reqRows[i][COL_REQUEST_ID]) lastRequestID = reqRows[i][COL_REQUEST_ID];
+    if (reqRows[i][COL_REQUEST_ID]) lastRequestID = reqRows[i][COL_REQUEST_ID].toString().trim();
   }
   
-  if (targetRowIndex === -1) return jsonResponse({ success: false, error: 'Row not found' });
+  if (targetRowIndex === -1) return jsonResponse({ success: false, error: 'Corresponding request row not found' });
 
-  const adjustment = (data.status === 'Issued') ? -1 : (data.status === 'Returned' ? 1 : 0);
-  
-  if (adjustment !== 0) {
-    for (let j = 1; j < eqData.length; j++) {
-      if (eqData[j][3] === data.equipmentDescription) { 
-        const currentQty = parseInt(eqData[j][4]) || 0;
-        eqSheet.getRange(j + 1, 5).setValue(currentQty + (adjustment * 1)); 
-        break;
-      }
-    }
-  }
+  // NOTE: We don't adjust Eq_Data_Base (TotalQty) because AvailableQty is calculated dynamically
+  // and TotalQty should remain fixed as original stock count.
 
   if (data.status === 'Issued') {
-    const updatedReqRows = reqSheet.getDataRange().getValues();
-    let allIssued = true;
-    let requestItems = [];
-    let studentInfo = {};
-    
-    lastRequestID = '';
-    for (let i = 1; i < updatedReqRows.length; i++) {
-      const currentID = updatedReqRows[i][COL_REQUEST_ID] || lastRequestID;
-      if (currentID === data.requestId) {
-        if (updatedReqRows[i][COL_MANAGER_STATUS] !== 'Issued') allIssued = false;
-        requestItems.push({
-          description: updatedReqRows[i][COL_EQUIPMENT_DESC],
-          simNo: updatedReqRows[i][COL_SIM_NO]
-        });
-        if (updatedReqRows[i][COL_REQUEST_ID]) {
-          studentInfo = {
-            name: updatedReqRows[i][COL_STUDENT_NAME],
-            prn: updatedReqRows[i][COL_STUDENT_PRN],
-            email: updatedReqRows[i][COL_STUDENT_EMAIL],
-            specialization: updatedReqRows[i][COL_SPECIALIZATION],
-            academicYear: updatedReqRows[i][COL_ACADEMIC_YEAR],
-            mobile: updatedReqRows[i][COL_MOBILE_NUMBER],
-            fromDate: updatedReqRows[i][COL_FROM_DATE],
-            returnDate: updatedReqRows[i][COL_RETURN_DATE],
-            assignmentDate: updatedReqRows[i][COL_ASSIGNMENT_DATE],
-            purpose: updatedReqRows[i][COL_PURPOSE],
-            faculty: updatedReqRows[i][COL_FACULTY_NAME],
-            authority: updatedReqRows[i][COL_ISSUING_AUTHORITY]
-          };
+    try {
+      const updatedReqRows = reqSheet.getDataRange().getValues();
+      let allIssued = true;
+      let requestItems = [];
+      let studentInfo = {};
+      
+      let lastReqID = '';
+      for (let i = 1; i < updatedReqRows.length; i++) {
+        const currentID = (updatedReqRows[i][COL_REQUEST_ID] || lastReqID || '').toString().trim();
+        if (currentID === targetRequestId) {
+          const mStatus = (updatedReqRows[i][COL_MANAGER_STATUS] || '').toString().trim();
+          if (mStatus !== 'Issued') allIssued = false;
+          
+          requestItems.push({
+            description: updatedReqRows[i][COL_EQUIPMENT_DESC],
+            simNo: updatedReqRows[i][COL_SIM_NO]
+          });
+          
+          // Capture student info from first row or any row with enough data
+          const studentName = updatedReqRows[i][COL_STUDENT_NAME];
+          if (studentName) {
+            studentInfo = {
+              name: studentName,
+              prn: updatedReqRows[i][COL_STUDENT_PRN],
+              email: updatedReqRows[i][COL_STUDENT_EMAIL],
+              specialization: updatedReqRows[i][COL_SPECIALIZATION],
+              academicYear: updatedReqRows[i][COL_ACADEMIC_YEAR],
+              mobile: updatedReqRows[i][COL_MOBILE_NUMBER],
+              fromDate: updatedReqRows[i][COL_FROM_DATE],
+              returnDate: updatedReqRows[i][COL_RETURN_DATE],
+              assignmentDate: updatedReqRows[i][COL_ASSIGNMENT_DATE],
+              purpose: updatedReqRows[i][COL_PURPOSE],
+              faculty: updatedReqRows[i][COL_FACULTY_NAME],
+              authority: updatedReqRows[i][COL_ISSUING_AUTHORITY]
+            };
+          }
         }
+        if (updatedReqRows[i][COL_REQUEST_ID]) lastReqID = updatedReqRows[i][COL_REQUEST_ID].toString().trim();
       }
-      if (updatedReqRows[i][COL_REQUEST_ID]) lastRequestID = updatedReqRows[i][COL_REQUEST_ID];
-    }
-    
-    if (allIssued) {
-      generateIssuancePDF(data.requestId, studentInfo, requestItems);
+      
+      if (allIssued && studentInfo.email) {
+        generateIssuancePDF(targetRequestId, studentInfo, requestItems);
+      }
+    } catch (e) {
+      console.error("PDF Generation Error: " + e.message);
+      // Don't fail the whole update if PDF generation fails
     }
   }
   

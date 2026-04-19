@@ -334,11 +334,12 @@
                 let pendingIndex = 0;
                 items.forEach((item) => {
                     if (item.ManagerStatus === 'Pending') {
-                        const allSimsFilled = items.every(i =>
-                            i.EquipmentSIMNo &&
-                            String(i.EquipmentSIMNo).trim() !== "" &&
-                            String(i.EquipmentSIMNo).trim() !== "undefined"
-                        );
+                        const currentSim = String(item.EquipmentSIMNo || '').trim();
+                        const isSimPresent = currentSim !== "" && currentSim !== "undefined" && currentSim !== "null";
+                        
+                        // We only disable if THIS item doesn't have a SIM
+                        // The student portal updates all at once, so usually they are all present or all absent.
+                        const canIssue = isSimPresent;
 
                         pendingRows.push(`
                             <tr onclick="openDetailModal('${reqId}')" class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
@@ -361,7 +362,7 @@
                                 <td class="px-8 py-6">
                                     <div class="flex items-center gap-2">
                                         <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${item.EquipmentDescription}</span>
-                                        ${item.EquipmentSIMNo && String(item.EquipmentSIMNo).trim() !== "" && String(item.EquipmentSIMNo).trim() !== "undefined"
+                                        ${isSimPresent
                                             ? `<span class="text-[10px] font-black text-emerald-500">[${item.EquipmentSIMNo}]</span>`
                                             : `<span class="text-[10px] font-bold text-amber-500 italic">SIM pending</span>`
                                         }
@@ -370,7 +371,7 @@
                                 <td class="px-8 py-6 text-right" onclick="event.stopPropagation()">
                                     <button
                                         onclick="openIssueModal('${reqId}', '${item.EquipmentDescription}', '${item.EquipmentSIMNo}')"
-                                        ${!allSimsFilled ? 'disabled' : ''}
+                                        ${!canIssue ? 'disabled' : ''}
                                         class="px-6 py-3 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-30 disabled:cursor-not-allowed">
                                         Issue Item
                                     </button>
@@ -415,7 +416,7 @@
                                 </td>
                                 <td class="px-8 py-6 text-right" onclick="event.stopPropagation()">
                                     <button
-                                        onclick="openReturnModal('${reqId}', '${item.EquipmentDescription}')"
+                                        onclick="openReturnModal('${reqId}', '${item.EquipmentDescription}', '${item.EquipmentSIMNo}')"
                                         class="px-6 py-3 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20">
                                         Return Item
                                     </button>
@@ -436,10 +437,9 @@
                 : `<tr><td colspan="5" class="px-8 py-12 text-center text-slate-400 italic">No active loans.</td></tr>`;
         }
 
-        // Issue Modal Logic
         let currentIssueData = null;
         function openIssueModal(reqId, desc, sim) {
-            currentIssueData = { reqId, desc };
+            currentIssueData = { reqId, desc, sim };
             document.getElementById('issue-equip-name').innerText = desc;
             document.getElementById('issue-sim-no').innerText = sim;
             document.getElementById('issuing-authority').value = '';
@@ -457,22 +457,29 @@
             btn.innerText = "Processing...";
 
             try {
-                await fetch(SCRIPT_URL, {
+                const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: 'updateManagerStatus',
                         requestId: currentIssueData.reqId,
                         equipmentDescription: currentIssueData.desc,
+                        simNo: currentIssueData.sim,
                         status: 'Issued',
                         issuingAuthority: authority
                     })
                 });
-                showToast('Success!', 'Item issued successfully.');
-                closeIssueModal();
-                setTimeout(fetchRequests, 2000);
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Success!', 'Item issued successfully.');
+                    closeIssueModal();
+                    setTimeout(fetchRequests, 1000);
+                } else {
+                    alert("Failed: " + (result.error || "Unknown error"));
+                }
             } catch (e) {
                 console.error(e);
-                alert("Action failed.");
+                alert("Action failed. Check console for details.");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Confirm Issue";
@@ -481,8 +488,8 @@
 
         // Return Modal Logic
         let currentReturnData = null;
-        function openReturnModal(reqId, desc) {
-            currentReturnData = { reqId, desc };
+        function openReturnModal(reqId, desc, sim) {
+            currentReturnData = { reqId, desc, sim };
             document.getElementById('return-equip-name').innerText = desc;
             document.getElementById('return-notes').value = '';
             document.getElementById('return-inspect-cb').checked = false;
@@ -504,24 +511,31 @@
             btn.innerText = "Processing...";
 
             try {
-                await fetch(SCRIPT_URL, {
+                const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: 'updateManagerStatus',
                         requestId: currentReturnData.reqId,
                         equipmentDescription: currentReturnData.desc,
+                        simNo: currentReturnData.sim,
                         status: 'Returned',
                         returnCondition: condition,
                         returnNotes: notes,
                         returnAgreementSigned: true
                     })
                 });
-                showToast('Success!', 'Item returned successfully.');
-                closeReturnModal();
-                setTimeout(fetchRequests, 2000);
+
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Success!', 'Item returned successfully.');
+                    closeReturnModal();
+                    setTimeout(fetchRequests, 1000);
+                } else {
+                    alert("Failed: " + (result.error || "Unknown error"));
+                }
             } catch (e) {
                 console.error(e);
-                alert("Action failed.");
+                alert("Action failed. Check console for details.");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Confirm Return";
