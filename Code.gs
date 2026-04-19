@@ -2,55 +2,55 @@ const VERCEL_URL = 'https://ais-dev-bn2ldncnfht3zuopoew4uo-207679608621.asia-eas
 
 /**
  * ACTUAL COLUMN STRUCTURE (Requests Sheet - Updated based on user's screenshot):
- * A (0) = ReturnDate
- * B (1) = SubmittedOn
- * C (2) = FacultyStatus (HODStatus)
- * D (3) = ManagerStatus
- * E (4) = Specialization (Batch & Specialization)
- * F (5) = AcademicYear (Semester Number)
- * G (6) = MobileNumber (Phone Number)
- * H (7) = AssignmentSubmissionDate (Submission Date)
- * I (8) = ConcernedFacultyName (Concerned Faculty)
- * J (9) = ConcernedFacultyEmail (FacultyEmail)
- * K (10) = IssuingAuthority
- * L (11) = ReturnCondition
- * M (12) = NotesFromManager
- * N (13) = RequestID
- * O (14) = StudentName
- * P (15) = StudentPRN
- * Q (16) = StudentEmail
- * R (17) = EquipmentSIMNo
- * S (18) = EquipmentDescription
- * T (19) = Quantity
- * U (20) = Purpose
- * V (21) = FromDate
+ * A (0) = RequestID
+ * B (1) = StudentName
+ * C (2) = StudentPRN
+ * D (3) = StudentEmail
+ * E (4) = EquipmentSIMNo
+ * F (5) = EquipmentDescription
+ * G (6) = Quantity
+ * H (7) = Purpose
+ * I (8) = FromDate
+ * J (9) = ReturnDate
+ * K (10) = SubmittedOn
+ * L (11) = FacultyStatus (HODStatus)
+ * M (12) = ManagerStatus
+ * N (13) = Specialization (Batch & Specialization)
+ * O (14) = AcademicYear (Semester Number)
+ * P (15) = MobileNumber (Phone Number)
+ * Q (16) = AssignmentSubmissionDate
+ * R (17) = ConcernedFacultyName
+ * S (18) = ConcernedFacultyEmail
+ * T (19) = IssuingAuthority
+ * U (20) = ReturnCondition
+ * V (21) = NotesFromManager
  * W (22) = AgreementSigned
  * X (23) = ReturnAgreementSigned
  */
 
 // Column Indices
-const COL_RETURN_DATE = 0;
-const COL_SUBMITTED_ON = 1;
-const COL_FACULTY_STATUS = 2;
-const COL_MANAGER_STATUS = 3;
-const COL_SPECIALIZATION = 4;
-const COL_ACADEMIC_YEAR = 5;
-const COL_MOBILE_NUMBER = 6;
-const COL_ASSIGNMENT_DATE = 7;
-const COL_FACULTY_NAME = 8;
-const COL_FACULTY_EMAIL = 9;
-const COL_ISSUING_AUTHORITY = 10;
-const COL_RETURN_CONDITION = 11;
-const COL_NOTES_MANAGER = 12;
-const COL_REQUEST_ID = 13;
-const COL_STUDENT_NAME = 14;
-const COL_STUDENT_PRN = 15;
-const COL_STUDENT_EMAIL = 16;
-const COL_SIM_NO = 17;
-const COL_EQUIPMENT_DESC = 18;
-const COL_QUANTITY = 19;
-const COL_PURPOSE = 20;
-const COL_FROM_DATE = 21;
+const COL_REQUEST_ID = 0;
+const COL_STUDENT_NAME = 1;
+const COL_STUDENT_PRN = 2;
+const COL_STUDENT_EMAIL = 3;
+const COL_SIM_NO = 4;
+const COL_EQUIPMENT_DESC = 5;
+const COL_QUANTITY = 6;
+const COL_PURPOSE = 7;
+const COL_FROM_DATE = 8;
+const COL_RETURN_DATE = 9;
+const COL_SUBMITTED_ON = 10;
+const COL_FACULTY_STATUS = 11;
+const COL_MANAGER_STATUS = 12;
+const COL_SPECIALIZATION = 13;
+const COL_ACADEMIC_YEAR = 14;
+const COL_MOBILE_NUMBER = 15;
+const COL_ASSIGNMENT_DATE = 16;
+const COL_FACULTY_NAME = 17;
+const COL_FACULTY_EMAIL = 18;
+const COL_ISSUING_AUTHORITY = 19;
+const COL_RETURN_CONDITION = 20;
+const COL_NOTES_MANAGER = 21;
 const COL_AGREEMENT_SIGNED = 22;
 const COL_RETURN_AGREEMENT = 23;
 
@@ -469,11 +469,11 @@ try {
   if (!sheet) {
     sheet = ss.insertSheet('Requests');
     sheet.appendRow([
-      'ReturnDate', 'SubmittedOn', 'FacultyStatus', 'ManagerStatus', 'Specialization', 
-      'AcademicYear', 'MobileNumber', 'AssignmentSubmissionDate', 'ConcernedFacultyName', 'ConcernedFacultyEmail', 
-      'IssuingAuthority', 'ReturnCondition', 'NotesFromManager', 'RequestID', 'StudentName',
-      'StudentPRN', 'StudentEmail', 'EquipmentSIMNo', 'EquipmentDescription', 'Quantity',
-      'Purpose', 'FromDate', 'AgreementSigned', 'ReturnAgreementSigned'
+      'RequestID', 'StudentName', 'StudentPRN', 'StudentEmail', 'EquipmentSIMNo',
+      'EquipmentDescription', 'Quantity', 'Purpose', 'FromDate', 'ReturnDate',
+      'SubmittedOn', 'FacultyStatus', 'ManagerStatus', 'Specialization', 'AcademicYear',
+      'MobileNumber', 'AssignmentSubmissionDate', 'ConcernedFacultyName', 'ConcernedFacultyEmail', 'IssuingAuthority',
+      'ReturnCondition', 'NotesFromManager', 'AgreementSigned', 'ReturnAgreementSigned'
     ]);
   }
   
@@ -540,10 +540,11 @@ try {
   });
   
   const mergeCols = [
-    COL_RETURN_DATE + 1, COL_SUBMITTED_ON + 1, COL_FACULTY_STATUS + 1, COL_MANAGER_STATUS + 1,
-    COL_SPECIALIZATION + 1, COL_ACADEMIC_YEAR + 1, COL_MOBILE_NUMBER + 1, COL_ASSIGNMENT_DATE + 1,
-    COL_FACULTY_NAME + 1, COL_FACULTY_EMAIL + 1, COL_REQUEST_ID + 1, COL_STUDENT_NAME + 1,
-    COL_STUDENT_PRN + 1, COL_STUDENT_EMAIL + 1, COL_PURPOSE + 1, COL_FROM_DATE + 1, COL_AGREEMENT_SIGNED + 1
+    COL_REQUEST_ID + 1, COL_STUDENT_NAME + 1, COL_STUDENT_PRN + 1, COL_STUDENT_EMAIL + 1,
+    COL_PURPOSE + 1, COL_FROM_DATE + 1, COL_RETURN_DATE + 1, COL_SUBMITTED_ON + 1,
+    COL_FACULTY_STATUS + 1, COL_MANAGER_STATUS + 1, COL_SPECIALIZATION + 1, COL_ACADEMIC_YEAR + 1,
+    COL_MOBILE_NUMBER + 1, COL_ASSIGNMENT_DATE + 1, COL_FACULTY_NAME + 1, COL_FACULTY_EMAIL + 1, 
+    COL_AGREEMENT_SIGNED + 1, COL_RETURN_AGREEMENT + 1
   ];
   if (numItems > 1) {
     mergeCols.forEach(col => {
