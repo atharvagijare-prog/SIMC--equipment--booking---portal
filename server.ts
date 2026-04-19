@@ -3,12 +3,45 @@ import { createServer as createViteServer } from 'vite';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { google } from 'googleapis';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DB_FILE = path.join(__dirname, 'db.json');
-const VERCEL_URL = "http://localhost:3000"; // Mock for local dev
+const VERCEL_URL = process.env.APP_URL || "http://localhost:3000";
+
+// Google OAuth setup
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  `${VERCEL_URL}/auth/google/callback`
+);
+
+async function getFacultyEmailsFromSheet() {
+  const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!spreadsheetId || !apiKey) {
+    console.warn('Google Spreadsheet ID or API Key not set. Sheet validation will be skipped.');
+    return [];
+  }
+
+  const sheets = google.sheets({ version: 'v4', auth: apiKey });
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'faculty!A:Z', // Assumes a 'faculty' tab exists
+    });
+    const rows = response.data.values;
+    if (!rows) return [];
+    
+    // Flatten all cells to find emails (or assume a specific column if known)
+    return rows.flat().filter(cell => typeof cell === 'string' && cell.includes('@')).map(email => email.toLowerCase().trim());
+  } catch (error) {
+    console.error('Error fetching data from Google Sheets:', error);
+    return [];
+  }
+}
 
 // Initial data for the demo
 const initialData = {
@@ -26,6 +59,8 @@ const initialData = {
   ],
   requests: []
 };
+
+// ... (remaining DB utility functions)
 
 // Initialize DB if it doesn't exist
 if (!fs.existsSync(DB_FILE)) {
@@ -53,6 +88,102 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+
+  // Google Auth Endpoints
+  app.get('/api/auth/google/url', (req, res) => {
+    const url = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      prompt: 'consent',
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile'
+      ],
+    });
+    res.json({ url });
+  });
+
+  app.get(['/auth/google/callback', '/auth/google/callback/'], async (req, res) => {
+    const { code } = req.query;
+    try {
+      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        throw new Error('Google OAuth credentials not configured');
+      }
+
+      const { tokens } = await oauth2Client.getToken(code as string);
+      oauth2Client.setCredentials(tokens);
+
+      const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+      const userInfo = await oauth2.userinfo.get();
+      const userEmail = userInfo.data.email?.toLowerCase();
+
+      if (!userEmail) throw new Error('No email found in Google profile');
+
+      const db = readDB();
+      const facultyEmails = await getFacultyEmailsFromSheet();
+      
+      const isFacultyInSheet = facultyEmails.includes(userEmail);
+      let user = db.users.find(u => u.email.toLowerCase() === userEmail);
+
+      if (isFacultyInSheet) {
+        if (!user) {
+          user = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: userInfo.data.name || 'Faculty User',
+            email: userEmail,
+            role: 'faculty',
+            prn: 'FAC-' + Math.random().toString(36).substr(2, 4).toUpperCase()
+          };
+          db.users.push(user);
+          writeDB(db);
+        } else if (user.role !== 'manager') { 
+          // If already a user but not a manager, ensure they have faculty role
+          user.role = 'faculty';
+          writeDB(db);
+        }
+      }
+
+      if (!user && !isFacultyInSheet) {
+        return res.send(`
+          <script>
+            window.opener.postMessage({ 
+              type: 'OAUTH_AUTH_ERROR', 
+              error: 'Access Denied: Your email (${userEmail}) is not listed in the authorized faculty sheet.' 
+            }, '*');
+            window.close();
+          </script>
+        `);
+      }
+
+      // If user exists (either pre-existing or created from sheet)
+      const { password: _, ...userWithoutPassword } = user;
+
+      res.send(`
+        <html>
+          <body>
+            <script>
+              window.opener.postMessage({ 
+                type: 'OAUTH_AUTH_SUCCESS', 
+                user: ${JSON.stringify(userWithoutPassword)} 
+              }, '*');
+              window.close();
+            </script>
+            <p>Authentication successful. You can close this window.</p>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error('OAuth Error:', error);
+      res.send(`
+        <script>
+          window.opener.postMessage({ 
+            type: 'OAUTH_AUTH_ERROR', 
+            error: 'Authentication failed: ${error instanceof Error ? error.message : "Unknown error"}' 
+          }, '*');
+          window.close();
+        </script>
+      `);
+    }
+  });
 
   // API Routes
   app.post('/api/login', (req, res) => {
