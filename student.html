@@ -435,6 +435,7 @@
                 let statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
                 let statusText = "Pending Faculty Approval";
 
+                const mgrStatus = (first.ManagerStatus || '').toString().trim();
                 if (mgrStatus === 'Issued') {
                     statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
                     statusText = "Issued";
@@ -764,9 +765,8 @@
             if (updates.some(u => !u.simNo)) return alert("Please fill all SIM numbers");
 
             try {
-                await fetch(SCRIPT_URL, {
+                const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     body: JSON.stringify({
                         action: 'updateSIMNumbers',
                         requestId: reqId,
@@ -775,11 +775,18 @@
                     })
                 });
 
-                document.getElementById('sim-modal').remove();
-                showToast("Updated!", "SIM numbers have been updated.");
-                setTimeout(fetchMyRequests, 2000);
+                const result = await response.json();
+                if (result.success) {
+                    const modal = document.getElementById('sim-modal');
+                    if (modal) modal.remove();
+                    showToast("Updated!", "SIM numbers have been updated.");
+                    setTimeout(fetchMyRequests, 2000);
+                } else {
+                    alert("Failed to update: " + (result.error || "Unknown error"));
+                }
             } catch (e) {
                 console.error(e);
+                alert("An error occurred while updating SIM numbers.");
             }
         }
 

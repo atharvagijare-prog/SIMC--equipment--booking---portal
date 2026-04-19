@@ -726,14 +726,19 @@ function updateSIMNumbers(ss, data) {
   const rows = sheet.getDataRange().getValues();
   const targetId = (data.requestId || '').toString().trim();
   
+  // Keep track of which row indices we've already updated in this call
+  const updatedIndices = new Set();
+  
   data.updates.forEach(update => {
     let lastRequestID = '';
     const targetDesc = (update.description || '').toString().trim();
     for (let i = 1; i < rows.length; i++) {
       const currentID = (rows[i][COL_REQUEST_ID] || '').toString().trim() || lastRequestID;
       const currentDesc = (rows[i][COL_EQUIPMENT_DESC] || '').toString().trim();
-      if (currentID === targetId && currentDesc === targetDesc) {
+      
+      if (currentID === targetId && currentDesc === targetDesc && !updatedIndices.has(i)) {
         sheet.getRange(i + 1, COL_SIM_NO + 1).setValue(update.simNo); 
+        updatedIndices.add(i);
         break;
       }
       if (rows[i][COL_REQUEST_ID]) lastRequestID = rows[i][COL_REQUEST_ID].toString().trim();
