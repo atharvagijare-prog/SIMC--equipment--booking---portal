@@ -1,5 +1,5 @@
 {
   "name": "SIMC Equipment Booking Portal",
-  "description": "",
+  "description": "A comprehensive equipment booking and management system for SIMC, featuring multi-role access for students, faculty, and store managers.",
   "requestFramePermissions": []
 }

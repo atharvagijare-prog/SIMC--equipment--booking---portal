@@ -19,9 +19,10 @@ const initialData = {
     { SIMNo: "SIM-004", Category: "Lighting", Description: "Aputure 300d II", Qty: 4, SerialNo: "SN-004", Location: "SIMC Store" },
     { SIMNo: "SIM-005", Category: "Grip", Description: "DJI Ronin-S", Qty: 3, SerialNo: "SN-005", Location: "SIMC Store" }
   ],
-  students: [
-    { prn: "21020121001", name: "Atharva Gijare", specialization: "Video Production", semester: "4" },
-    { prn: "21020121002", name: "Jane Doe", specialization: "Journalism", semester: "4" }
+  users: [
+    { id: "1", prn: "21020121001", name: "Atharva Gijare", email: "atharva.gijare@simc.edu", password: "password", role: "student", specialization: "Video Production", semester: "4" },
+    { id: "2", prn: "FAC-001", name: "Dr. Smith", email: "smith@simc.edu", password: "password", role: "faculty" },
+    { id: "3", prn: "MGR-001", name: "Store Manager", email: "manager@simc.edu", password: "password", role: "manager" }
   ],
   requests: []
 };
@@ -54,6 +55,25 @@ async function startServer() {
   app.use(express.json());
 
   // API Routes
+  app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+    const db = readDB();
+    const user = db.users.find(u => u.email === email && u.password === password);
+    
+    if (user) {
+      // For this demo, we'll return the user object (excluding password).
+      const { password: _, ...userWithoutPassword } = user;
+      return res.json({ success: true, user: userWithoutPassword });
+    }
+    return res.status(401).json({ success: false, error: "Invalid credentials" });
+  });
+
+  app.get('/api/me', (req, res) => {
+    // This is a dummy endpoint for now. 
+    // Usually you'd check a token or session cookie.
+    res.json({ success: false }); 
+  });
+
   app.get('/api', (req, res) => {
     const action = req.query.action;
     const db = readDB();
@@ -64,9 +84,9 @@ async function startServer() {
 
     if (action === 'validateStudent') {
       const prn = req.query.prn;
-      const student = db.students.find(s => s.prn === prn);
-      if (student) {
-        return res.json({ success: true, ...student });
+      const user = db.users.find(u => u.prn === prn && u.role === 'student');
+      if (user) {
+        return res.json({ success: true, ...user });
       }
       return res.json({ success: false, error: "PRN not found in database" });
     }
