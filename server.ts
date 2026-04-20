@@ -46,11 +46,13 @@ async function getFacultyEmailsFromSheet() {
 // Initial data for the demo
 const initialData = {
   inventory: [
-    { SIMNo: "SIM-001", Category: "Camera", Description: "Sony A7S III", Qty: 5, SerialNo: "SN-001", Location: "SIMC Store" },
-    { SIMNo: "SIM-002", Category: "Lens", Description: "Sony 24-70mm f/2.8 GM", Qty: 8, SerialNo: "SN-002", Location: "SIMC Store" },
-    { SIMNo: "SIM-003", Category: "Audio", Description: "Sennheiser G4 Wireless Mic", Qty: 10, SerialNo: "SN-003", Location: "SIMC Store" },
-    { SIMNo: "SIM-004", Category: "Lighting", Description: "Aputure 300d II", Qty: 4, SerialNo: "SN-004", Location: "SIMC Store" },
-    { SIMNo: "SIM-005", Category: "Grip", Description: "DJI Ronin-S", Qty: 3, SerialNo: "SN-005", Location: "SIMC Store" }
+    { SIMNo: "SIM-001", Category: "Cameras", Description: "Sony A7S III", Qty: 5, SerialNo: "SN-001", Location: "SIMC Store", ImageURL: "https://picsum.photos/seed/camera1/400/300" },
+    { SIMNo: "SIM-002", Category: "Lenses", Description: "Sony 24-70mm f/2.8 GM", Qty: 8, SerialNo: "SN-002", Location: "SIMC Store", ImageURL: "https://picsum.photos/seed/lens1/400/300" },
+    { SIMNo: "SIM-003", Category: "Audio", Description: "Sennheiser G4 Wireless Mic", Qty: 10, SerialNo: "SN-003", Location: "SIMC Store", ImageURL: "https://picsum.photos/seed/audio1/400/300" },
+    { SIMNo: "SIM-004", Category: "Lighting", Description: "Aputure 300d II", Qty: 4, SerialNo: "SN-004", Location: "SIMC Store", ImageURL: "https://picsum.photos/seed/light1/400/300" },
+    { SIMNo: "SIM-005", Category: "Accessories", Description: "DJI Ronin-S", Qty: 3, SerialNo: "SN-005", Location: "SIMC Store", ImageURL: "https://picsum.photos/seed/acc1/400/300" },
+    { SIMNo: "SIM-006", Category: "Cameras", Description: "GoPro Hero 11 Black", Qty: 6, SerialNo: "SN-006", Location: "SIMC Store", ImageURL: "https://picsum.photos/seed/gopro/400/300" },
+    { SIMNo: "SIM-007", Category: "Accessories", Description: "Manfrotto Tripod", Qty: 12, SerialNo: "SN-007", Location: "SIMC Store", ImageURL: "https://picsum.photos/seed/tripod/400/300" }
   ],
   users: [
     { id: "1", prn: "21020121001", name: "Atharva Gijare", email: "atharva.gijare@simc.edu", password: "password", role: "student", specialization: "Video Production", semester: "4" },

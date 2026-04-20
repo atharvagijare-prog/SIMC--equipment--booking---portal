@@ -17,6 +17,7 @@ export interface Equipment {
   Qty: number;
   SerialNo: string;
   Location: string;
+  ImageURL?: string;
 }
 
 export interface BookingRequest {
