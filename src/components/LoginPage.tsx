@@ -134,7 +134,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <input
                 type="email"
                 required
-                className="appearance-none rounded-t-2xl relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
+                className="appearance-none rounded-t-2xl relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -144,7 +144,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <input
                 type="password"
                 required
-                className="appearance-none rounded-b-2xl relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
+                className="appearance-none rounded-b-2xl relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-accent focus:border-accent focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -158,13 +158,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
           )}
 
-          <div>
+          <div className="space-y-3">
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-primary hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-50"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-2xl text-white bg-primary hover:bg-gray-800 transition-all disabled:opacity-50"
             >
               {loading ? 'Processing...' : 'Sign in as Student'}
+            </button>
+            <button
+              type="button"
+              onClick={() => onLogin({ id: 'guest', name: 'Guest User', email: 'guest@simc.edu', role: 'guest' })}
+              className="w-full flex justify-center py-3 px-4 border border-gray-200 text-sm font-semibold rounded-2xl text-gray-600 bg-white hover:bg-gray-50 transition-all"
+            >
+              Skip to Portal (Guest View)
             </button>
           </div>
         </form>
