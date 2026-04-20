@@ -22,6 +22,7 @@ export default function Inventory({ user }: InventoryProps) {
   const [items, setItems] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'categories' | 'items'>('categories');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedItem, setSelectedItem] = useState<Equipment | null>(null);
   const [requestData, setRequestData] = useState({
@@ -42,7 +43,14 @@ export default function Inventory({ user }: InventoryProps) {
       });
   }, []);
 
-  const categories = ['All', ...new Set(items.map(item => item.Category))];
+  const categoryDefinitions = [
+    { title: 'Cameras', desc: 'Cine, Video, Stills, Action Cam, Gopro, iPhone, film camera', icon: 'camera', color: 'bg-[#f0f1ff]' },
+    { title: 'Lenses', desc: 'Sony, Canon, Nikon, Zeiss, Panasonic, Wildlife...', icon: 'glasses', color: 'bg-[#f0faff]' },
+    { title: 'Rigs & Grips', desc: 'Gimbals Slider Jibs, tripods, monopods', icon: 'tripod', color: 'bg-[#fdf3f3]' },
+    { title: 'Audio', desc: 'Mics Recorders mixers', icon: 'mic', color: 'bg-[#f5f3ff]' },
+    { title: 'Lighting', desc: 'Photography Lights, Cine Lights, Modifiers', icon: 'zap', color: 'bg-[#fff7ed]' },
+    { title: 'Accessories', desc: 'Batteries, Cards, Cables, Bags', icon: 'shopping-bag', color: 'bg-[#f3f4f6]' },
+  ];
 
   const filteredItems = items.filter(item => {
     const matchesSearch = item.Description.toLowerCase().includes(search.toLowerCase()) ||
@@ -50,6 +58,11 @@ export default function Inventory({ user }: InventoryProps) {
     const matchesCategory = selectedCategory === 'All' || item.Category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleCategoryClick = (cat: string) => {
+    setSelectedCategory(cat);
+    setViewMode('items');
+  };
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,144 +108,130 @@ export default function Inventory({ user }: InventoryProps) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
-      {/* Sidebar Filter */}
-      <div className="w-full lg:w-64 flex-shrink-0 space-y-6">
-        <div>
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Categories</h2>
-          <div className="flex flex-wrap lg:flex-col gap-1">
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 text-left rounded-xl text-sm transition-all ${
-                  selectedCategory === cat 
-                  ? 'bg-primary text-white font-semibold' 
-                  : 'text-gray-500 hover:bg-gray-100'
-                }`}
+    <div className="space-y-8">
+      {viewMode === 'categories' ? (
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-4xl font-black tracking-tighter text-primary mb-2">Equipment Rentals</h1>
+            <p className="text-gray-500 font-medium tracking-wide italic">Choose a category to explore professional production gear.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {categoryDefinitions.map((cat, i) => (
+              <motion.div
+                key={cat.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => handleCategoryClick(cat.title)}
+                className={`relative ${cat.color} p-8 rounded-[2.5rem] h-64 flex flex-col justify-between group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-100 hover:-translate-y-2 overflow-hidden`}
               >
-                {cat}
-              </button>
+                <div className="relative z-10">
+                  <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">{cat.title}</h2>
+                  <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[200px]">{cat.desc}</p>
+                </div>
+
+                <div className="flex justify-between items-end relative z-10">
+                  <div className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center bg-white group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                    <ArrowRight size={24} />
+                  </div>
+                  
+                  {/* Themed Icon Placeholder (Mimicking the Owl Style) */}
+                  <div className="opacity-20 group-hover:opacity-40 transition-opacity duration-300">
+                     <Package size={100} className="text-primary -mr-4 -mb-4 rotate-12" />
+                  </div>
+                </div>
+
+                {/* Abstract subtle background ring */}
+                <div className="absolute -right-10 -bottom-10 w-48 h-48 border-[20px] border-white/20 rounded-full" />
+              </motion.div>
             ))}
           </div>
         </div>
-
-        <div className="hidden lg:block p-4 bg-accent/5 rounded-2xl border border-accent/10">
-          <p className="text-[10px] font-bold text-accent uppercase tracking-widest mb-1">Store Notice</p>
-          <p className="text-xs text-gray-600 leading-relaxed">
-            Ensure you submit requests at least 48 hours in advance for faculty approval.
-          </p>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 space-y-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <nav className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-              <span>Catalog</span>
-              <ChevronRight size={10} />
-              <span className="text-accent">{selectedCategory}</span>
-            </nav>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Equipment Store</h1>
-          </div>
-          
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search gear..." 
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent text-sm shadow-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-          {loading ? (
-            Array(6).fill(0).map((_, i) => (
-              <div key={i} className="aspect-[4/5] bg-gray-100 rounded-3xl animate-pulse" />
-            ))
-          ) : filteredItems.length > 0 ? (
-            filteredItems.map((item) => (
-              <motion.div
-                layoutId={item.SIMNo}
-                key={item.SIMNo}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="group flex flex-col bg-white rounded-3xl border border-gray-200 overflow-hidden hover:shadow-2xl hover:border-transparent transition-all duration-500"
+      ) : (
+        <div className="flex flex-col gap-8">
+          {/* Header with Back Button */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="space-y-2">
+              <button 
+                onClick={() => setViewMode('categories')}
+                className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors"
               >
-                {/* Image Container */}
-                <div 
-                  className="aspect-[4/3] bg-gray-50 flex items-center justify-center p-8 relative overflow-hidden cursor-pointer"
-                  onClick={() => setSelectedItem(item)}
-                >
-                  <motion.img 
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    src={item.ImageURL || `https://picsum.photos/seed/${item.SIMNo}/400/300`} 
-                    alt={item.Description}
-                    className="w-full h-full object-contain mix-blend-multiply"
-                    referrerPolicy="no-referrer"
-                  />
-                  
-                  {/* Status Overlay */}
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
-                      {item.SIMNo}
-                    </span>
-                  </div>
-
-                  {item.Qty <= 2 && item.Qty > 0 && (
-                    <div className="absolute top-4 right-4 px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-bold uppercase tracking-widest animate-pulse">
-                      Low Stock
-                    </div>
-                  )}
-                  {item.Qty === 0 && (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] flex items-center justify-center z-10">
-                      <span className="px-4 py-2 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest">Out of Stock</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Info Container */}
-                <div className="flex-1 p-6 flex flex-col">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent mb-1">{item.Category}</p>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 line-clamp-2 leading-snug">
-                    {item.Description}
-                  </h3>
-                  
-                  <div className="mt-auto flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-gray-400 font-medium">Availability</p>
-                      <p className={`text-sm font-bold ${item.Qty > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                        {item.Qty} Units Left
-                      </p>
-                    </div>
-                    
-                    <button 
-                      onClick={() => setSelectedItem(item)}
-                      className="p-3 bg-gray-50 text-gray-900 rounded-2xl hover:bg-primary hover:text-white transition-all group-hover:shadow-lg"
-                    >
-                      <ArrowRight size={20} />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))
-          ) : (
-            <div className="col-span-full py-20 text-center">
-              <Package size={48} className="mx-auto text-gray-200 mb-4" />
-              <h3 className="text-xl font-bold text-gray-900">No equipment found</h3>
-              <p className="text-gray-500">Try adjusting your search or category filter.</p>
+                <X size={12} />
+                Back to Categories
+              </button>
+              <h1 className="text-3xl font-black tracking-tight text-primary uppercase">{selectedCategory}</h1>
             </div>
-          )}
-        </div>
-      </div>
+            
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder={`Search in ${selectedCategory}...`} 
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent text-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
 
-      {/* Booking Modal (Redesigned as a slide-over or centered hero) */}
+          {/* Product Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {loading ? (
+              Array(6).fill(0).map((_, i) => (
+                <div key={i} className="aspect-[4/5] bg-gray-100 rounded-3xl animate-pulse" />
+              ))
+            ) : filteredItems.length > 0 ? (
+              filteredItems.map((item) => (
+                <motion.div
+                  layoutId={item.SIMNo}
+                  key={item.SIMNo}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="group flex flex-col bg-white rounded-3xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-500"
+                >
+                  {/* Same Product Card Design as before but tweaked for Accord style */}
+                  <div 
+                    className="aspect-square bg-gray-50 flex items-center justify-center p-8 relative overflow-hidden cursor-pointer"
+                    onClick={() => setSelectedItem(item)}
+                  >
+                    <motion.img 
+                      whileHover={{ scale: 1.05 }}
+                      src={item.ImageURL || `https://picsum.photos/seed/${item.SIMNo}/400/300`} 
+                      className="w-full h-full object-contain mix-blend-multiply"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute top-4 left-4">
+                       <span className="px-3 py-1 bg-white/80 backdrop-blur rounded-full text-[10px] font-bold uppercase tracking-widest">{item.SIMNo}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">{item.Description}</h3>
+                    <div className="flex justify-between items-center">
+                       <p className={`text-xs font-bold ${item.Qty > 0 ? 'text-green-600' : 'text-red-500'}`}>{item.Qty} Units</p>
+                       <button 
+                        onClick={() => setSelectedItem(item)}
+                        className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all"
+                       >
+                         <ArrowRight size={18} />
+                       </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full py-20 text-center">
+                <Package size={48} className="mx-auto text-gray-200 mb-4" />
+                <h3 className="text-xl font-bold text-gray-900">No items found</h3>
+                <p className="text-gray-500">Try searching or go back to categories.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Existing Booking Modal logic */}
       <AnimatePresence>
         {selectedItem && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 overflow-y-auto">
